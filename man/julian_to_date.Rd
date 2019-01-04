@@ -2,7 +2,7 @@
 % Please edit documentation in R/date_funs.R
 \name{julian_to_date}
 \alias{julian_to_date}
-\title{Conversion of Julian day to date.}
+\title{Conversion of Julian day to date}
 \usage{
 julian_to_date(jd, yr)
 }
@@ -15,7 +15,8 @@ julian_to_date(jd, yr)
 Returns a date in ymd format.
 }
 \description{
-\code{julian_to_date} returns a date corresponding to Julian day and year in input.
+\code{julian_to_date} returns a date corresponding to Julian day and year
+in input.
 }
 \examples{
 julian_to_date(1, 2000)

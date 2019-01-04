@@ -1,0 +1,11 @@
+sea.start --> sea_start
+sea.end --> sea_end
+s.year --> s_year
+e.year --> e_year
+start.dummy --> start_dummy
+end.dummy --> end_dummy
+min.pts --> min_pts
+min.d.fix --> min_d_fix
+nest.cycle --> nest_cycle
+min.consec --> min_consec
+nestFinder --> nest_finder
