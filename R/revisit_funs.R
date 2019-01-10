@@ -9,8 +9,6 @@
 #' @param x \code{data.frame} of daily revisitation history of a
 #' candidate nest
 #' @return Returns \code{data.frame} of run-length encoding of nest visits.
-#'
-#' @export
 visit_rle <- function(x){
   # Calculate rle
   rl <- rle(x[["visited"]])
@@ -33,8 +31,6 @@ visit_rle <- function(x){
 #' @param rl_df \code{data.frame} of run-length encoding of nest visits
 #' @return Returns maximum number of consecutive days when the candidate
 #' nest was visited.
-#'
-#' @export
 rle_to_consec <- function(rl_df) {
   rl_df <- rl_df  %>%
     filter(values) %>%
@@ -79,8 +75,6 @@ rle_to_consec <- function(rl_df) {
 #' @param nest_cycle Integer. Duration (in days) of a complete nesting cycle
 #' @return Returns \code{data.frame} with start and end dates of the
 #' attempt and number of nest visits within it.
-#'
-#' @export
 attempt_limits <- function(x, min_consec, nest_cycle){
 
   # Calculate the rle
@@ -193,8 +187,6 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 #' be counted as not visited if a visit was not observed
 #' @return Returns \code{data.frame} with revisitation statistics for each
 #' candidate nest.
-#'
-#' @export
 revisit_stats <- function(sub, sea_start, sea_end, min_d_fix){
 
   # Sequence of all the possible days in the season
@@ -335,8 +327,6 @@ revisit_stats <- function(sub, sea_start, sea_end, min_d_fix){
 #' nests
 #' @return Returns \code{data.frame} of revisitation patterns filtered to
 #' only include non-temporally overlapping candidate nests
-#'
-#' @export
 choose_overlapping <- function(attempts) {
 
   # Initialize field to mark attempts to keep

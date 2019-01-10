@@ -11,9 +11,9 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Depends:
-    dplyr
-Imports: 
+    dplyr,
     lubridate,
-    geosphere,
     data.table
+Imports: 
+    geosphere
 RoxygenNote: 6.1.1

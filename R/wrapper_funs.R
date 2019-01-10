@@ -1,119 +1,137 @@
-
-nestFinder <- function(dat, # Data (already subset for a burst; has to include id, burst, date, long, lat)
-                       buffer, # Size of the buffer to compute revisitation
-                       sea.start, # Earliest date to be considered within the breeding season
-                       sea.end, # Latest date to be considered within the breeding season
-                       nest.cycle, # Duration of nesting cycle
-                       min.d.fix, # Minimum number of fixes for a day to be retained (data quality control)
-                       min.consec, # Minimum number of consecutive days for a loc to be considered
-                       min.top.att.perc, # Minimum % of fixes at a location on the day with max attendance (same as above but %)
-                       min.days.att.perc, # Minimum % of days spent at location (between first and last visit)
-                       min.pts, # Minimum number of points within a buffer to be considered as a candidate
-                       discard_overlapping=TRUE) {
-
-  burst.id <- unique(dat$burst)
-
-  # Print current burst
-  cat("****************************\n")
-  cat(paste0("Processing ", burst.id, "\n"))
-  cat("****************************\n\n")
-
-  # Order by date and assign location id
-  dat <- dat %>%
-    arrange(date) %>%
-    mutate(loc_id = 1:nrow(.)) %>%
-    select(loc_id, everything())
-
-  # Handle dates
-  dat <- date_handler(dat, sea.start, sea.end)
-
-  # Calculate distance matrix
-  cat("Calculating distance matrix... ")
-  dmat <- dist_mat(dat)
-  cat("Done.\n")
-
-  # Get potential nest candidates
-  cat("Finding candidate nest locations... ")
-  cands <- get_candidates(dm = dmat, buffer = buffer, min.pts = min.pts)
-  cat("Done.\n")
-
-  # Remove distance matrix to free up RAM
-  rm(dmat)
-  gc()
-
-  # Summarize candidates
-  cands_count <- candidate_summary(cands)
-
-  # Join group ID back to the original data
-  dat <- left_join(dat, cands, by = "loc_id")
-
-  # Save computation time: discard group IDs that appear on days < min.consec
-  keepers <- dat %>%
-    group_by(group_id, reldate) %>%
-    tally() %>%
-    filter(n >= min.consec) %>%
-    pull(group_id) %>%
-    unique()
-
-  # Subset data for group_ids of interest
-  sub <- dat %>%
-    filter(group_id %in% keepers)
-
-  # Calculate revisitation stats
-  cat("Calculating revisitation patterns... ")
-  daily_stats <- revisit_stats(sub, sea.start, sea.end, min.d.fix)
-  cat("Done.\n")
-
-  # Filter group_ids that satisfy input criteria and add coordinates
-  results <- daily_stats %>%
-    filter(!is.na(attempt_start),
-           !is.na(attempt_end),
-           consec_days >= min.consec,
-           perc_days_vis >= min.days.att.perc,
-           perc_top_vis >= min.top.att.perc) %>%
-    left_join(select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-    mutate(attempt_start = julian_to_date(sea.start, yr = min(year(sub$date))) + attempt_start) %>%
-    mutate(attempt_end = julian_to_date(sea.start, yr = min(year(sub$date))) + attempt_end) %>%
-    mutate(burst = burst.id) %>%
-    select(burst,
-           loc_id = group_id,
-           long,
-           lat,
-           first_date,
-           last_date,
-           attempt_start,
-           attempt_end,
-           tot_vis,
-           days_vis,
-           consec_days,
-           perc_days_vis,
-           perc_top_vis) %>%
-    arrange(desc(tot_vis))
-
-  # Optional: deal with temporally overlapping attempts
-  if (discard_overlapping) {
-
-    results <- choose_overlapping(results)
-
-  }
-
-  cat("\nProcess completed!\n\n")
-  return(results)
-
-}
-
-# Function to apply 'nestFinder()' to multiple bursts consecutively
-
-nestR <- function(rawdata, # Has to include id, burst, date, long, lat
-                  buffer, # Size of the buffer to compute revisitation
-                  sea.start, # Earliest date to be considered within the breeding season
-                  sea.end, # Latest date to be considered within the breeding season
-                  nest.cycle, # Duration of nesting cycle
-                  min.d.fix, # Minimum number of fixes for a day to be retained (data quality control)
-                  min.consec, # Minimum number of consecutive days for a loc to be considered
-                  min.top.att.perc, # Minimum % of fixes at a location on the day with max attendance (same as above but %)
-                  min.days.att.perc, # Minimum % of days spent at location (between first and last visit)
-                  min.pts, # Minimum number of points within a buffer to be considered as a candidate
+#' Find nest locations from GPS data
+#'
+#' \code{find_nests} finds nest locations from GPS data based on patterns of
+#' location revisitation
+#' @details Data passed to the argument \code{gps_data} needs to be split in
+#' individual-years labelled each as a separate \code{burst}. We recommend
+#' dividing the data so that seasonal nesting activities are contained within
+#' single bursts. Cutting data at a day that is not likely to overlap with
+#' nesting is best.
+#'
+#' Data must include the following columns: a burst identifier (\code{burst}),
+#' date-time (\code{date}), and WGS84 coordinates (\code{long}, \code{lat}).
+#'
+#' Patterns of revisitation to repeatedly visited locations are used to
+#' identify potential nesting locations. Due to both movement and GPS error,
+#' recorded points around recurrently visited locations are expected to be
+#' scattered around the true revisited location. To account for this
+#' scattering, the user defines a \code{buffer} value which will be used
+#' to group points falling within a buffer distance from each other.
+#'
+#' When grouping, several points peripheral to a true revisited location
+#' may compete in grouping points around them. We term these 'competing
+#' points'. If the buffers of two points do not overlap, those points are
+#' not competing. Among competing points, only one point is selected, chosen
+#' as the one that incorporates the most other points within its buffer.
+#' A top candidate is selected for each cluster of competing points, i.e., one
+#' representative for each cluster around a revisited location.
+#'
+#' To speed up calculations, the user can define \code{min_pts} as the minimum
+#' number of points that need to fall within the buffer for a point to be
+#' considered as a potential nest candidate. This discards isolated points from
+#' consideration as revisited locations.
+#'
+#' The arguments \code{sea_start} and \code{sea_end} are used to delimit the
+#' nesting season. The user can pass either a Julian day or a date. If
+#' inputting dates, the year can be a dummy year which will get automatically
+#' updated each time to the correct year for the current burst. If working
+#' with a species for which the temporal limits of the nesting season are not
+#' well-defined, the user can input a range of dates that covers the entire
+#' year. Nonetheless, we recommend ensuring that \code{sea_start} and
+#' \code{sea_end} are set so that nesting attempts are not split between
+#' bursts. For example, for a species that nests from October to September,
+#' enter October 1st as start date and September 30th as end date and not,
+#' for example, January 1st-December 31st.
+#'
+#' The argument \code{nest_cycle} is the duration (in days) of a complete
+#' nesting attempt, i.e., the time necessary for an individual to successfully
+#' complete reproduction.
+#'
+#' Once recurrently visited locations are identified, the function computes,
+#' for each of them:
+#'
+#' \itemize{
+#'
+#' \item the first and last day when the location was visited;
+#' \item the total number of visits;
+#' \item the number of days in which it was visited;
+#' \item the percent of days visited between the days of first and last visit;
+#' \item the attendance (\% of fixes at the location) on the day with the
+#' most visits;
+#' \item the longest series of consecutive days visited;
+#' \item the estimated start and end dates of the nesting attempt.
+#'
+#'  }
+#'
+#' On days when no visit was recorded, two cases are possible: either the nest
+#' was truly not visited, or visits were missed. On days with few fixes, there
+#' is a higher chance of missing a visit given that it happened. Missed visit
+#' detections can interrupt an otherwise continuos strike of days visited.
+#' To counteract possible issues due to missed visit detections, the user can
+#' define \code{min_d_fix} as the minimum number of fixes that have to be
+#' available in a day with no visits for that day to be retained when counting
+#' consecutive days visited. If a day with no visits and fewer fixes than
+#' \code{min_d_fix} interrupts a sequence of consecutive days visited, it
+#' does not get considered and the sequence gets counted as uninterrupted.
+#'
+#' The remaining arguments are used to filter results. The user can set
+#' minimum values for each of the following revisitation statistics:
+#'
+#' \itemize{
+#'
+#' \item the longest series of consecutive days visited (\code{min_consec});
+#' \item the attendance (\% of fixes at the location) on the day with the
+#' most visits (\code{min_top_att});
+#' \item the percent of days visited between the days of first and last visit
+#' \code{min_days_att};
+#'
+#'  }
+#'
+#' Among candidate nests, only those whose values for the above parameters
+#' exceed the user-defined minima are returned.
+#'
+#' If the results include any temporally overlapping nesting attempts, the
+#' user can opt to only keep one among those. If \code{discard_overlapping}
+#' is set to \code{TRUE} (default), only the candidate nest with the most
+#' visits is kept among temporally overlapping ones, and the others get
+#' discarded. This is based on the rationale that an individual cannot
+#' simultaneously nest at more than one location. The location that is visited
+#' the most is assumed to be the most likely true nest. On the other hand,
+#' setting \code{discard_overlapping} to \code{FALSE} retains all candidate
+#' nests in the results.
+#'
+#' @param gps_data \code{data.frame} of movement data. Needs to include burst,
+#' date, long, lat
+#' @param buffer Size of the buffer to compute location revisitation
+#' @param min_pts Minimum number of points within a buffer
+#' @param sea_start Integer (if Julian day) or date. Earliest date to be
+#' considered within the breeding season
+#' @param sea_end Integer (if Julian day) or date. Latest date to be
+#' considered within the breeding season
+#' @param nest_cycle Duration of nesting cycle
+#' @param min_d_fix Minimum number of fixes for a day to be retained if no
+#' nest visit was recorded
+#' @param min_consec Minimum number of consecutive days visited
+#' @param min_top_att Minimum percent of fixes at a location on the day
+#' with maximum attendance
+#' @param min_days_att Minimum percent of days spent at a location
+#' between first and last visit
+#' @param discard_overlapping If results include temporally overlapping
+#' attempts, select only one among those? Defaults to \code{TRUE}.
+#' @return Returns \code{data.frame} with nest locations and associated
+#' revisitation stats.
+#'
+#' @export
+find_nests <- function(gps_data,
+                  buffer,
+                  min_pts,
+                  sea_start,
+                  sea_end,
+                  nest_cycle,
+                  min_d_fix,
+                  min_consec,
+                  min_top_att,
+                  min_days_att,
                   discard_overlapping=TRUE) {
 
   #Record the start time
@@ -125,7 +143,7 @@ nestR <- function(rawdata, # Has to include id, burst, date, long, lat
   dir.create(temp_name, showWarnings = FALSE)
 
   # Create a vector of bursts to loop through
-  bursts <- unique(rawdata$burst)
+  bursts <- unique(gps_data$burst)
 
   for (i in 1:length(bursts)) {
 
@@ -134,20 +152,94 @@ nestR <- function(rawdata, # Has to include id, burst, date, long, lat
     cat("****************************\n")
     cat(paste0("Burst ", i, " of ", length(bursts), "\n"))
 
-    dat <- rawdata %>%
+    dat <- gps_data %>%
       filter(burst==burst_id)
 
-    nests <- nestFinder(dat, # Data (already subset for a burst; has to include id, burst, date, long, lat)
-                        buffer, # Size of the buffer to compute revisitation
-                        sea.start, # Earliest date to be considered within the breeding season
-                        sea.end, # Latest date to be considered within the breeding season
-                        nest.cycle, # Duration of nesting cycle
-                        min.d.fix, # Minimum number of fixes for a day to be retained (data quality control)
-                        min.consec, # Minimum number of consecutive days for a loc to be considered
-                        min.top.att.perc, # Minimum % of fixes at a location on the day with max attendance (same as above but %)
-                        min.days.att.perc, # Minimum % of days spent at location (between first and last visit)
-                        min.pts, # Minimum number of points within a buffer to be considered as a candidate
-                        discard_overlapping=TRUE)
+    # Print current burst
+    cat("****************************\n")
+    cat(paste0("Processing ", burst_id, "\n"))
+    cat("****************************\n\n")
+
+    # Order by date and assign location id
+    dat <- dat %>%
+      arrange(date) %>%
+      mutate(loc_id = 1:nrow(.)) %>%
+      select(loc_id, everything())
+
+    # Handle dates
+    dat <- date_handler(dat, sea_start, sea_end)
+
+    # Calculate distance matrix
+    cat("Calculating distance matrix... ")
+    dmat <- dist_mat(dat)
+    cat("Done.\n")
+
+    # Get potential nest candidates
+    cat("Finding candidate nest locations... ")
+    cands <- get_candidates(dm = dmat, buffer = buffer, min_pts = min_pts)
+    cat("Done.\n")
+
+    # Remove distance matrix to free up RAM
+    rm(dmat)
+    gc()
+
+    # Summarize candidates
+    cands_count <- candidate_summary(cands)
+
+    # Join group ID back to the original data
+    dat <- left_join(dat, cands, by = "loc_id")
+
+    # Save computation time: discard group IDs that appear on days < min_consec
+    keepers <- dat %>%
+      group_by(group_id, reldate) %>%
+      tally() %>%
+      filter(n >= min_consec) %>%
+      pull(group_id) %>%
+      unique()
+
+    # Subset data for group_ids of interest
+    sub <- dat %>%
+      filter(group_id %in% keepers)
+
+    # Calculate revisitation stats
+    cat("Calculating revisitation patterns... ")
+    daily_stats <- revisit_stats(sub, sea_start, sea_end, min_d_fix)
+    cat("Done.\n")
+
+    # Filter group_ids that satisfy input criteria and add coordinates
+    nests <- daily_stats %>%
+      filter(!is.na(attempt_start),
+             !is.na(attempt_end),
+             consec_days >= min_consec,
+             perc_days_vis >= min_days_att,
+             perc_top_vis >= min_top_att) %>%
+      left_join(select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
+      mutate(attempt_start = julian_to_date(sea_start, yr = min(lubridate::year(sub$date))) + attempt_start) %>%
+      mutate(attempt_end = julian_to_date(sea_start, yr = min(lubridate::year(sub$date))) + attempt_end) %>%
+      mutate(burst = burst_id) %>%
+      select(burst,
+             loc_id = group_id,
+             long,
+             lat,
+             first_date,
+             last_date,
+             attempt_start,
+             attempt_end,
+             tot_vis,
+             days_vis,
+             consec_days,
+             perc_days_vis,
+             perc_top_vis) %>%
+      arrange(desc(tot_vis))
+
+    # Optional: deal with temporally overlapping attempts
+    if (discard_overlapping) {
+
+      nests <- choose_overlapping(nests)
+
+    }
+
+    cat("\nProcess completed!\n\n")
 
     saveRDS(nests, paste0(temp_name, "/nests_", burst_id, ".rds"))
 

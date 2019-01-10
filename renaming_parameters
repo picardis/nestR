@@ -9,3 +9,7 @@ min.d.fix --> min_d_fix
 nest.cycle --> nest_cycle
 min.consec --> min_consec
 nestFinder --> nest_finder
+rawdata --> gps_data
+min.top.att.perc --> min_top_att_perc
+min.days.att.perc --> min_days_att_perc
+

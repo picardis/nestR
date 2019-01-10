@@ -17,7 +17,6 @@
 #'
 #' julian_to_date(100, 1992)
 #' # 1992 was a leap year; Julian day 100 is April 9th
-#' @export
 julian_to_date <- function(jd, yr) {
   # Start with a dummy date
   dummy <- lubridate::ymd("1990-01-01")
@@ -43,20 +42,18 @@ julian_to_date <- function(jd, yr) {
 #' @param sea_end Integer (if Julian day) or date in which the nesting season
 #' ends
 #' @return Returns subset of data comprised within the nesting season
-#'
-#' @export
 date_handler <- function(dat, sea_start, sea_end) {
 
   # Determine the year
   if (sea_start > sea_end){
     # Then the year will change between start and end
-    s_year <- min(year(dat$date))
+    s_year <- min(lubridate::year(dat$date))
     e_year <- s_year + 1
     # If this is the case, BUT the animal had no locations until > January 1st,
     # then this will return the wrong year -- handling this below
   } else {
     # The start and end year are the same
-    s_year <- unique(year(dat$date))
+    s_year <- unique(lubridate::year(dat$date))
     e_year <- s_year
   }
 
@@ -64,8 +61,8 @@ date_handler <- function(dat, sea_start, sea_end) {
   start_dummy <- end_dummy <- ymd("1990-01-01")
 
   #Update the years of the dummy dates
-  year(start_dummy) <- s_year
-  year(end_dummy) <- e_year
+  lubridate::year(start_dummy) <- s_year
+  lubridate::year(end_dummy) <- e_year
 
   # Handle dat type of sea_start (either numeric or date)
   if (is.numeric(sea_start)) {
@@ -102,8 +99,8 @@ date_handler <- function(dat, sea_start, sea_end) {
   # Now deal with the case where the wrong year was assigned --
   # see comment above
   if(sum(between(dat$date, start_dummy, end_dummy))==0){
-    year(start_dummy) <- year(start_dummy) - 1
-    year(end_dummy) <- year(end_dummy) -1
+    lubridate::year(start_dummy) <- lubridate::year(start_dummy) - 1
+    lubridate::year(end_dummy) <- lubridate::year(end_dummy) -1
   }
 
   # Assign relative date
