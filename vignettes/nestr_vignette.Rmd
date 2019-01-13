@@ -1,0 +1,547 @@
+---
+title: "Analysis of bird nesting from GPS data in R: the `nestR` package"
+author: "Simona Picardi"
+date: "January 2019"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Analysis of bird nesting from GPS data in R: the `nestR` package}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+<script type="text/javascript">
+  // When the document is fully rendered...
+  $(document).ready(function() {
+    // ...select all header elements...
+    $('h1, h2, h3, h4, h5').each(function() {
+      // ...and add an id to them corresponding to their 'titles'
+      $(this).attr('id', $(this).html());
+    });
+  });
+</script>
+    
+## Introduction
+
+The `nestR` package provides functions to locate nesting attempts and estimate 
+their outcome from bird GPS-tracking data. Being able to estimate reproductive
+outcome from GPS data bridges the gap between movement and fitness. 
+
+This vignette presents the workflow of the `nestR` package. The workflow can be 
+conceptually divided in two parts: [first](), the identification of nesting 
+attempts along individual movement trajectories, and [second](), the estimation 
+of the outcome of nesting attempts. 
+
+For illustration purposes, this vignette uses example datasets on three bird
+species: wood storks (*Mycteria americana*), lesser kestrels (*Falco naumanni*),
+and mediterranean gulls (*Ichthyaetus melanocephalus*). Each dataset includes
+trajectories for two individual-years. All example datasets are available
+within the package. 
+
+## Data format
+
+Functions in the `nestR` package require GPS data to be formatted as a `data.frame` or `tibble` including four columns: 
+
+* `burst` - this is a unique identifier of each individual-year. We recommend
+the user to split individual data into bursts on a date that does not overlap 
+with nesting activities. The full breeding cycle of an individual on a given
+year needs to be comprised within a single burst. 
+
+* `date` - this is a date-time object of class `POSIXct`. 
+
+* `long` and `lat` - these are location coordinates in long/lat projection.
+
+Additional columns will not interfere with the functioning of the package, as
+long as these four fields are present and named with the terms above. 
+
+Let's load the package and take a look at the wood stork dataset, for example:
+
+```{r look at the data, message = FALSE}
+
+# Load the package
+library(nestR)
+
+# Load wood stork dataset
+data(woodstorks)
+
+# Take a look
+head(woodstorks)
+
+```
+
+```{r data str}
+
+# Data structure 
+str(woodstorks)
+
+```
+
+Note that the coordinates are truncated when printing the output to the 
+console, but the full values are actually stored. 
+
+```{r coords}
+
+head(woodstorks$long)
+head(woodstorks$lat)
+
+```
+
+## Part I: Finding nest locations
+
+### Background 
+
+When birds are nesting, they exhibit specific movement patterns that can allow
+us to identify the location of their nest. Specifically, birds perform
+repeated back-and-forth movements to and from their nest while they provide
+food for their nestlings and themselves. Repeatedly visited locations can be 
+identified along movement trajectories, and patterns of revisitation can be 
+used to determine whether a location that gets visited repeatedly is likely to 
+be a nest. 
+
+The process of identifying nesting locations from GPS data relies on two
+components: knowledge of the biology of the study species and characteristics
+of the data at hand. Both of these aspects are fundamental in driving the 
+patterns we observe in movement trajectories and require careful consideration
+by the user. 
+
+The datasets included in the `nestR` package differ both in terms of
+species biology and data characteristics. The following table summarizes
+the main differences:
+
+Table Header | Second Header
+-------------|-------------
+Table Cell   |Cell 2
+Cell 3       |Cell 4
+
+Throughout this vignette, we will refer back to specific features of each
+dataset and illustrate how these can and need to be accounted for when using
+functions in the `nestR` package. 
+
+### Introducing the `find_nests` function
+
+The central function for the first part of the `nestR` workflow is `find_nests`.
+
+This function identifies potential nests based on patterns of location
+revisitation. It takes as input the GPS data and returns any revisited 
+locations that match a set of user-defined parameter values. Parameters can
+be conceptually organized in three groups:
+
+* Parameters related to basic information on the biology of the species;
+* Parameters related to data characteristics; 
+* Parameters used for discriminating nests from other repeatedly visited
+locations that are not nests.
+
+Typically, while prior information on the first two is available to the user,
+this is not the case for the third group of parameters. Therefore, our
+recommended workflow for finding nests involves the following steps:
+
+1. Identifiying any recurrently visited locations along individual 
+movement trajectories;
+1. Comparing revisitation patterns at nests versus non-nests and establish
+a way to tell them apart;
+1. Based on what found in step 2, identifying nests among revisited locations.
+
+The function `find_nests` will be used to tackle steps 1 and 3. 
+
+To accomplish step 2, some information on the location of nests for a subset
+of the data is necessary. In an ideal situation, the user has access to prior
+information on the location of nests for some individual-years in the dataset.
+Otherwise, a viable alternative is for the user to identify "trusted nests" 
+among revisited locations through visual inspection, for example because they 
+fall within known colonies. Both cases will be illustrated in [link]().
+
+Here's the full list of arguments of the function `find_nests`:
+
+* gps_data
+* sea_start
+* sea_end
+* nest_cycle
+* buffer
+* min_pts
+* min_d_fix
+* min_consec
+* min_top_att
+* min_days_att
+* discard_overlapping
+
+The first argument is the GPS data, formatted as described in [Data format](#data-format). 
+
+The next three arguments describe basic information of the biology of the 
+species. 
+`sea_start` and `sea_end` delimit the start and end of the breeding season for 
+the species at hand. Restricting the scope of the analysis to the breeding 
+season only is especially important for reducing computation time and avoiding 
+incurring into memory issues when running `find_nests`. 
+`nest_cycle` is the duration in days of a complete nesting attempt for the 
+species at hand. Typically, it counts how many days go by, on average, between 
+the moment an individual starts building its nest and the moment its chicks 
+fledge. 
+
+The next three arguments are related to data characteristics. 
+`buffer` defines the spatial scale at which revisitation patterns will be
+calculated. Returns to a location are defined as returns to a circular 
+area of radius = `buffer` (in meters). The use of this parameter is meant to 
+account for the spatial scattering of GPS points around a nest due to both 
+behavior (sometimes the tag will happen to record a point when the bird was in 
+the proximity of the nest, possibly arriving or departing, and not exactly on 
+it) and GPS error. The value of `buffer` needs to be set to a number at least as
+large as the spatial resolution of the GPS data. 
+Revisitation stats will be computed on each area of size `buffer` that is 
+visited multiple times. To speed up calculations, the user can discard isolated 
+points from the get-go and not bother calculating revisitation stats on those. 
+The parameter `min_pts` allows to specify a minimum number of points that need 
+to fall within a point's buffer for it to be retained in the calculation of 
+revisitation stats. 
+Some of the revisitation stats included in the output of `find_nests` are based
+on the number of consecutive days a location is visited. For tags that have a 
+high failure rate and a relatively low temporal resolution, it is easy to miss 
+a nest visit even though it happened. This can break an otherwise continuous
+strike of days where visits were recorded. The argument `min_d_fix` allows the
+user to counteract the effect of missed visits, by setting a minimum number of
+fixes that need to be available in a day when no visit was detected for that
+day to be truly counted as non visited. In [link](), we provide an example of 
+when this is especially needed.
+
+The remaining arguments are used for filtering revisited locations based on
+revisitation patterns. Revisitation patterns include the number of consecutive 
+days a location is visited, the percent of fixes at the location on the day
+with maximum attendance, and the percent of days a location is visited between 
+the first and last visit. The user can set minimum values for each of these 
+using `min_consec`, `min_top_att`, and `min_days_att`, respectively. Any 
+location for which revisitation patterns do not exceed these user-defined 
+thresholds will not be returned. Prior information regarding these parameters
+is likely not available to the user, and finding the best set of values to 
+specify for these arguments will be the focus of [Step 2](). Finally, 
+`discard_overlapping` specifies whether the function should return all the 
+revisited locations that  match the specified criteria, or avoid returning 
+locations for which the time ranges of revisits are overlapping. Assuming that a
+bird cannot nest in two places at the same time, if `discard_overlapping` is set
+to `TRUE`, only the most likely nest location is return among temporally
+overlapping ones. However, we will later illustrate the case where it is useful
+to set this argument to `FALSE` instead.
+
+The output of `find_nests` is a `data.frame` including any revisited locations
+that match the criteria specified in the function arguments, along with their 
+revisitation stats. For example:
+
+```{r output example, echo = FALSE}
+
+data(wost_output_1)
+wost_output_1 %>% 
+  group_by(burst) %>% 
+  slice(1) %>% 
+  as.data.frame()
+
+```
+
+Each row of the `data.frame` corresponds to one revisited location. The columns
+are:
+
+* `burst`, the burst id of the individual-year;
+* `loc_id`, the unique identifier of the location;
+* `long` and `lat`, its coordinates;
+* `first_date` and `last_date`, the days when the location was first and last
+visited;
+* `attempt_start` and `attempt_end`, the estimated start and end dates of the
+nesting attempt;
+* `tot_vis`, the total number of visits (fixes);
+* `days_vis`, the total number of days when the location was visited;
+* `consec_days`, the duration of the longest strike of consecutive days when the
+location was visited;
+* `perc_days_vis`, the percentage of days when the location was visited between
+the first and last visits;
+* `perc_top_vis`, the percentage of fixes at the location on the day with 
+maximum attendance.
+
+### Step 1: Identifying recurrently visited locations
+
+Animals exhibit recursive movement patterns for a variety of reasons. In the 
+case of birds, locations that get visited recurrently can include nests as well
+as roosting sites, favorite foraging spots, and so on. However, patterns of 
+revisitation likely differ for locations that a bird visits for different 
+reasons. Nests are expected to be visited for longer strikes of consecutive 
+days, more consistently, or for longer or more times during a day compared to 
+other types of revisited locations. But *how much* more? It is our job to find 
+out. 
+
+As a first step, we suggest that users use the `find_nests` function to screen
+the data to identify recurrently visited locations, regardless of whether they 
+are nests or not. To do so, the user can specify low values for the arguments
+involved with the filtering, so that the constraints applied are loose.
+
+Here is an example with wood storks. Wood storks nest at different times of the
+year in different parts of their range, so the first challenge with this species
+is that there isn't a well-defined nesting season. For example, wood storks in
+southern Florida usually breed between January and May, but those that nest in
+some areas farther north can start as late as March or April. Overall, we 
+cannot exclude the possibility of observing nesting events any time between 
+November and August. Therefore, we set `sea_start` and `sea_end` to November 
+1st and August 31st, respectively. 
+The time required for an individual wood stork to complete its nesting cycle is
+110 days. We set `nest_cycle` to this value. 
+The spatial accuracy of the GPS data for wood storks is 18 meters according
+to the tag user manual. We set the value of `buffer` to 40 meters to allow some 
+extra room for spatial scattering of points around a central location. In
+general, we found that buffer sizes between 20 and 50 meters return comparable
+results in our three case studies. We encourage the user to explore results
+obtained with different buffer sizes and possibly fine-tune the value to one
+that well captures the spatial scale of recursive movements given the species
+and data at hand. 
+We set `min_pts` to 2 to avoid calculating revisitation patterns for points 
+that are relatively isolated. This is still a very low, conservative value. 
+We set `min_d_fix` to 5, meaning that any day with no visit does not get counted
+as interrupting an otherwise continuous strike of consecutive days if the tag
+did not collect at least 5 fixes on that day. This is especially important for
+wood storks because the time interval between fixes is 1 hour, the tags are
+solar powered and therefore only take fixes during the daytime, and the failure
+rate is high. These factors combined mean that often there are only a handful of
+fixes collected on a day, and the probability of missing nest visits is high. If
+a strike of consecutive days is interrupted by one or more days with no recorded
+visit but that only include 1 to 4 fixes, we do not have enough information to
+truly determine if the nest was not visited, and we assume that a visit was 
+likely missed instead. As we will mention later, this is not as much of a 
+problem in the case of both kestrels and gulls, because those tags were set to
+collect data every 15 minutes and have a low failure rate, so that the 
+probability of missing visits to the nest is lower. 
+We set the three filtering arguments to low values, meaning that the constraints
+we enforce are as loose as they can be. We set `min_consec` to 2 days, and
+`min_top_att` and `min_days_att` to 1%. This will return any location that is
+visited for at least 2 consecutive days, regardless of how often it is visited
+between the first and last visit and regardless of how much is it visited for
+on the day with the most visits. We also set `discard_overlapping` to `FALSE` 
+so that the function will not discard locations that are visited simultaneously
+to a likely nest. This will be useful for [Step 2](). 
+
+```{r wost screening, eval = FALSE}
+
+wost_output_1 <- find_nests(gps_data = woodstorks,
+                    sea_start = 305,
+                    sea_end = 243,
+                    nest_cycle = 110,
+                    buffer = 40,
+                    min_pts = 2,
+                    min_d_fix = 5,
+                    min_consec = 2,
+                    min_top_att = 1,
+                    min_days_att = 1,
+                    discard_overlapping = FALSE)
+
+head(wost_output_1)
+
+```
+
+Here is what the output looks like:
+
+```{r print output, echo = FALSE}
+
+data(wost_output_1)
+head(wost_output_1)
+
+```
+
+Let's check how many revisited locations were returned with this set of 
+parameters for each of the two individual-years:
+
+```{r dim output 1}
+
+table(wost_output_1$burst)
+
+```
+
+Results are automatically sorted by `tot_vis` within each burst, so for each 
+individual the location that was visited the most is at the top of the list. 
+
+### Step 2: Discriminating between nests and non-nests
+
+The set of revisited locations obtained as output of the screening in Step 1
+likely includes both nests and non-nests. The objective of this section is to
+identify the best set of parameter values to discriminate between these. 
+Specifically, the parameters that we want to tune are those that describe
+patterns of revisitation: `min_consec`, `min_top_att`, and `min_days_att`.
+To inform our choice of values for these parameters, we want to compare the 
+values obtained in output for nests and non-nests for `consec_days`, 
+`perc_top_vis`, and `perc_days_vis`.
+
+The function `get_explodata` automates the process of selecting nests and
+non-nests to compare. Given the output of `find_nests` and information on known
+nest locations, the function extracts the true nest and another location that is
+not a nest from the set of revisited locations. To illustrate how the function
+works, let's step through the process manually on the two individuals in the
+wood stork example dataset. 
+
+#### Case A: coordinates of true nest are known
+
+For one of the two wood storks, the location of the nest is known. This 
+individual bred at a colony located at the  Jacksonville Zoo, and we are lucky 
+enough to have the GPS coordinates of its nest. For this individual, thus, we 
+can identify the true nest among the set of revisited locations by comparing 
+coordinates to those of the known nest. We can then select another location 
+among the remaining to serve as a non-nest counterpart, and compare how values 
+of the parameters describing revisitation patterns differ between the two.
+
+Let's look at the first 10 revisited locations identified for this individual
+in the previous section: 
+
+```{r jax}
+
+head(wost_output_1 %>% filter(burst == "414590-2009"), 10)
+
+```
+
+The first location was visited a total of 348 times, for 76 days (of which 40
+consecutive). The bird went back to the location on 54.68% of days between the
+day of first and last visit. On the day the bird spent the most time at the 
+location, 100% of the fixes were at the location. This seems like a good 
+candidate nest. Let's compare its coordinates to the ones of the known nest and
+see if they match. 
+
+```{r known jax nest}
+
+data(jax_known_nest)
+
+jax_known_nest
+
+```
+
+The coordinates match until the third (longitude) and second (latitude) decimal 
+places. Let's see what distance that corresponds to:
+
+```{r dist}
+
+coords_cand <- wost_output_1 %>% 
+  filter(burst == "414590-2009") %>% 
+  slice(1) %>% 
+  select(long, lat)
+
+coords_known <- jax_known_nest %>% 
+  select(long, lat)
+
+geosphere::distGeo(coords_cand, coords_known)
+
+```
+
+The points are about 18 meters apart. That is well within what expected due to 
+both GPS error and behavioral patterns affecting the signal we get in the data,
+and well within the 40 meters buffer we used to calculate revisits. We can 
+confidently confirm that that is the nest. 
+
+Now, we want to select a non-nest among the other revisited locations. We want
+to pick a location that would look like a nest good candidate based on 
+revisitation patterns, because what we are after are subtle differences in 
+revisitation parameters that could not be picked up by the eye. In other words, 
+there would be no need for complicated analyses to tell apart nests and
+non-nests if the first were visited for 40 consecutive days, 50% of the days, 
+and on 100% of the time on the top attendance day and the second were visited 
+for at most 3 days in a row, 2% of the days, and 10% of the time on the day with
+top attendance. We want to select a point that we are confident is not a nest
+but that gets as close as possible to the revisitation parameters of a true 
+nest. This will give us a better ability to identify the most conservative 
+cutoffs for parameter values to identify nests.
+
+One way of going about this would be to select the second most visited location
+in the set. The top visited location is not necessarily also the one with the 
+highest values for each of the other revisitation parameters, but usually the 
+total number of visits is a good predictor of how intensively a location gets 
+revisited in all aspects. But how can we be sure that the second most visited
+location is not also a nest, maybe corresponding to a second nesting attempt?
+
+Some species are known to be able to nest twice in the same breeding season
+if they start the first clutch early enough or if their first attempt fails. 
+In this case, one way to be sure that the location we select is truly a non-nest
+is to choose one that temporally overlaps with the true nesting attempt
+at the known location. This is where having set `discard_overlapping = FALSE` 
+in `find_nests` comes in handy, as it made sure that locations visited
+simultaneously to the true nest still appear in our output. 
+
+In the case of our Jacksonville stork, the nesting attempt at the true nest was
+estimated to start on March 3rd 2009 and end on June 22nd 2009. The second,
+third, and fourth location were all visited in a time range that does not 
+overlap with that interval. The first instance of a location that was visited 
+simultaneously to the true nest is the fifth location in the set. Since wood 
+storks are able to do repeated nesting attempts, we can choose to be 
+conservative and select the fifth location as a non-nest to compare the nest to,
+rather than the second. 
+
+The function `get_explodata` automates the process we described so far. It takes
+as input the list of candidate nests output by `find_nests`, and a data frame of
+coordinates for the known nests (`known_coords`). The argument 
+`pick_overlapping` allows the user to decide whether the criterion of temporal 
+overlap to a true nest gets applied or not when selecting a non-nest. For 
+species that do not re-nest, this might not be necessary.The function is also 
+designed to handle two possible sources of error that could arise from 
+automating the process instead of supervising it:
+
+1. The true nest location is not in the output. This can happen if, for example,
+gaps in the data due to tag malfunctioning led to missing most of the visits to 
+the nest. 
+1. Multiple locations surrounding the nest were selected as candidate nests, and
+the closest one to the nest in terms of linear distance is not the one with the
+highest revisitation parameters. 
+
+Selecting the true nest as simply the closest location to the known nest is 
+prone to both of these error sources. The argument `buffer` in the function 
+`get_explodata` helps solving both of these issues. The function selects the 
+true nest as the top visited location among those that fall within a `buffer`
+distance from the known nest. If there is none, nothing is returned. If multiple
+locations are available within the buffer, the most visited one, not the 
+closest one, gets selected. If the coordinates in `known_coords` represent the
+actual location of the nest, we recommend to set `buffer` in `get_explodata` to 
+the same value used for the argument `buffer` in `find_nests`. In cases where,
+for example, a single pair of coordinates is available for an entire colony 
+rather than for the exact location of a nest within it, the value of `buffer` 
+can be increased to match the spatial extent of the colony to ensure the true 
+nest does not fall outside of the buffer.
+
+#### Case B: coordinates of true nest are unknown
+
+For the second individual in the wood stork example dataset, no prior 
+information is available on the location of the nest. However, we can identify
+the likely location of the nest by visually inspecting revisited locations in
+the output of `find_nests`. 
+
+A useful tool available within `nestR` for visual exploration of the data is
+available with the function `interactive_nestR`. This function launches a 
+shiny app that allows to interactively explore results of `find_nests` by
+visualizing them on a map. The app can be opened with RStudio or any browser
+software. Input parameters taken as arguments by `find_nests` can be manipulated
+on the spot and the corresponding results are displayed on a satellite map. 
+
+By launching `interactive_nestR` on the wood stork data, selecting the burst
+1134370-2013, and inputting the same parameters we used when running 
+`find_nests`, we notice that the first location of the set (the most visited
+one), falls right on the Rookery Branch colony in Everglades National Park. 
+This, together with the fact that the location was visited a total of 589 times,
+for 61 days (of which 37 consecutive), 89.71% of the days between the first and
+last visit, and 100% of the time on the day with maximum attendance, makes us
+confident that the location represents a true nest. 
+
+*insert screenshot of shiny app here*
+
+*insert zoomed-in plot of top location and colony location*
+
+```{r wost2}
+
+wost_output_1 %>% 
+  filter(burst == "1134370-2013") %>% 
+  slice(1) 
+
+```
+
+The function `get_explodata` allows to input information on true nests in an 
+alternative way that works well in this case: instead of providing the nest
+coordinates by passing `known_coords` to the function, the user can provide the 
+location ID instead, by using the argument `known_ids`. We can thus run 
+`get_explodata` on wood stork 1134370-2013 by specifying the location ID of the
+point we trust to be a nest. 
+
+### Step 3: Identifying nests among revisited locations

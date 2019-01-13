@@ -54,7 +54,7 @@ single bursts. Cutting data at a day that is not likely to overlap with
 nesting is best.
 
 Data must include the following columns: a burst identifier (\code{burst}),
-date-time (\code{date}), and WGS84 coordinates (\code{long}, \code{lat}).
+date-time (\code{date}), and long/lat coordinates (\code{long}, \code{lat}).
 
 Patterns of revisitation to repeatedly visited locations are used to
 identify potential nesting locations. Due to both movement and GPS error,

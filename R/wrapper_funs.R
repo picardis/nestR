@@ -9,7 +9,7 @@
 #' nesting is best.
 #'
 #' Data must include the following columns: a burst identifier (\code{burst}),
-#' date-time (\code{date}), and WGS84 coordinates (\code{long}, \code{lat}).
+#' date-time (\code{date}), and long/lat coordinates (\code{long}, \code{lat}).
 #'
 #' Patterns of revisitation to repeatedly visited locations are used to
 #' identify potential nesting locations. Due to both movement and GPS error,
@@ -134,13 +134,20 @@ find_nests <- function(gps_data,
                   min_days_att,
                   discard_overlapping=TRUE) {
 
-  #Record the start time
+  # Check format of input data
+  check_input(gps_data)
+
+  # Record the start time
   start_time <- Sys.time()
 
   # Create a folder to store the outputs
-  #Temporary folder name
-  temp_name <- paste0("output/temp_", format(Sys.time(), "%Y%m%d_%H%M%S"))
-  dir.create(temp_name, showWarnings = FALSE)
+  # Temporary folder name
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  temp_name <- paste0("output/temp_", timestamp)
+  dir.create(temp_name, showWarnings = FALSE, recursive = TRUE)
+
+  # Initialize error log
+  cat("Error log \n\n", file = paste0("output/errorlog", timestamp, ".txt"))
 
   # Create a vector of bursts to loop through
   bursts <- unique(gps_data$burst)
@@ -169,6 +176,18 @@ find_nests <- function(gps_data,
     # Handle dates
     dat <- date_handler(dat, sea_start, sea_end)
 
+    # Handle cases where there are no data within the nesting season
+    if (nrow(dat) == 0) {
+
+      cat(paste0("Burst ", burst_id,
+                 ": no data available within the nesting season\n"),
+          file = paste0("output/errorlog", timestamp, ".txt"),
+          append = TRUE)
+
+      next()
+
+      }
+
     # Calculate distance matrix
     cat("Calculating distance matrix... ")
     dmat <- dist_mat(dat)
@@ -178,6 +197,18 @@ find_nests <- function(gps_data,
     cat("Finding candidate nest locations... ")
     cands <- get_candidates(dm = dmat, buffer = buffer, min_pts = min_pts)
     cat("Done.\n")
+
+    # Handle cases where there are no candidates
+    if (nrow(cands) == 0) {
+
+      cat(paste0("Burst ", burst_id,
+                 ": no revisited locations found\n"),
+          file = paste0("output/errorlog", timestamp, ".txt"),
+          append = TRUE)
+
+      next()
+
+    }
 
     # Remove distance matrix to free up RAM
     rm(dmat)
@@ -201,9 +232,28 @@ find_nests <- function(gps_data,
     sub <- dat %>%
       filter(group_id %in% keepers)
 
+    # Handle cases where there are no keepers
+    if (nrow(sub) == 0) {
+
+      cat(paste0("Burst ", burst_id,
+                 ": no locations revisited for more than ",
+                 min_consec,
+                 " days\n"),
+          file = paste0("output/errorlog", timestamp, ".txt"),
+          append = TRUE)
+
+      next()
+
+    }
+
     # Calculate revisitation stats
     cat("Calculating revisitation patterns... ")
-    daily_stats <- revisit_stats(sub, sea_start, sea_end, min_d_fix)
+    daily_stats <- revisit_stats(sub = sub,
+                                 sea_start = sea_start,
+                                 sea_end = sea_end,
+                                 min_d_fix = min_d_fix,
+                                 min_consec = min_consec,
+                                 nest_cycle = nest_cycle)
     cat("Done.\n")
 
     # Filter group_ids that satisfy input criteria and add coordinates
@@ -231,6 +281,18 @@ find_nests <- function(gps_data,
              perc_days_vis,
              perc_top_vis) %>%
       arrange(desc(tot_vis))
+
+    # Handle cases where no nests passed the filter
+    if (nrow(sub) == 0) {
+
+      cat(paste0("Burst ", burst_id,
+                 ": no locations found for the specified set of parameters\n"),
+          file = paste0("output/errorlog", timestamp, ".txt"),
+          append = TRUE)
+
+      next()
+
+    }
 
     # Optional: deal with temporally overlapping attempts
     if (discard_overlapping) {

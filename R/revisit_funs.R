@@ -187,7 +187,12 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 #' be counted as not visited if a visit was not observed
 #' @return Returns \code{data.frame} with revisitation statistics for each
 #' candidate nest.
-revisit_stats <- function(sub, sea_start, sea_end, min_d_fix){
+revisit_stats <- function(sub,
+                          sea_start,
+                          sea_end,
+                          min_d_fix,
+                          min_consec,
+                          nest_cycle){
 
   # Sequence of all the possible days in the season
   all_days <- 0:max(sub$reldate)
