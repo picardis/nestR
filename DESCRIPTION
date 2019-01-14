@@ -13,9 +13,9 @@ LazyData: true
 Depends:
     dplyr,
     lubridate,
-    data.table
-Imports: 
+    data.table,
     geosphere
+Imports: 
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,

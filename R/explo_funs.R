@@ -113,6 +113,10 @@ get_explodata <- function(candidate_nests,
       # The real nest is the top (most visited) among those
       nests[[i]] <- true_nest
 
+      # Get rid of dist_from_known column
+      nests[[i]] <- nests[[i]] %>%
+        select(-dist_from_known)
+
       # Subset the rest
       rest <- sub %>%
         filter(loc_id != nests[[i]]$loc_id)
@@ -132,11 +136,14 @@ get_explodata <- function(candidate_nests,
 
           # The non-nest is the top visited among those that temporally
           # overlap with the nest
-          non_nest <- rest %>%
-            filter((between(attempt_start, true_start, true_end) |
-                      between(attempt_end, true_start, true_end)) &
-                     tot_vis == max(rest$tot_vis)) %>%
+          non_nests[[i]] <- rest %>%
+            filter(between(attempt_start, true_start, true_end) |
+                      between(attempt_end, true_start, true_end)) %>%
             slice(1)
+
+          # Get rid of dist_from_known column
+          non_nests[[i]] <- non_nests[[i]] %>%
+            select(-dist_from_known)
 
         } else { # Otherwise, if pick_overlapping == FALSE, the non-nest
           # is simply the top visited among the other points
@@ -146,6 +153,10 @@ get_explodata <- function(candidate_nests,
             filter(tot_vis == max(rest$tot_vis)) %>%
             slice(1)
 
+          # Get rid of dist_from_known column
+          non_nests[[i]] <- non_nests[[i]] %>%
+            select(-dist_from_known)
+
         }
 
       }
@@ -153,6 +164,14 @@ get_explodata <- function(candidate_nests,
 
     } else if (!missing(known_ids)) {
     # Case 2: known_ids are provided
+
+      # Keep only bursts for which we have a known nest
+      candidate_nests <- candidate_nests %>%
+        filter(burst %in% known_ids$burst)
+
+      # Create empty lists to store results
+      nests <- list()
+      non_nests <- list()
 
       for (i in unique(candidate_nests$burst)) {
 
@@ -164,7 +183,7 @@ get_explodata <- function(candidate_nests,
         # Select known nest location
         known <- known_ids %>%
           filter(burst == i) %>%
-          select(loc_id)
+          pull(loc_id)
 
         # Select real nest based on location ID
         true_nest <- sub %>%
@@ -192,10 +211,9 @@ get_explodata <- function(candidate_nests,
 
             # The non-nest is the top visited among those that temporally
             # overlap with the nest
-            non_nest <- rest %>%
-              filter((between(attempt_start, true_start, true_end) |
-                        between(attempt_end, true_start, true_end)) &
-                       tot_vis == max(rest$tot_vis)) %>%
+            non_nests[[i]] <- rest %>%
+              filter(between(attempt_start, true_start, true_end) |
+                       between(attempt_end, true_start, true_end)) %>%
               slice(1)
 
           } else { # Otherwise, if pick_overlapping == FALSE, the non-nest
@@ -219,6 +237,7 @@ get_explodata <- function(candidate_nests,
   non_nests_df$nest <- "no"
 
   explodata <- rbind(nests_df, non_nests_df)
+  rownames(explodata) <- NULL
 
   return(explodata)
 
