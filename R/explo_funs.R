@@ -243,5 +243,106 @@ get_explodata <- function(candidate_nests,
 
 }
 
+#' Find set/s of parameter values to discriminate nests
+#'
+#' \code{discriminate_nests} uses CART to find sets of parameter values that
+#' best distinguish nests from non-nests among revisited locations.
+#'
+#' @details Given a dataset of revisited locations flagged as either nests or
+#' non-nests, \code{discriminate_nests} uses Classification and Regression Trees
+#' (CART) to find the set (or sets) of parameters that best distinguishes
+#' between nests and non-nests.
+#'
+#' The function fits a CART model on the training fraction of the data, prunes
+#' the tree, and performs cross-validation using the testing fraction of the
+#' data.
+#'
+#' The user can specify how much of the data is used for training versus testing
+#' the algorithm. If all the data is used for training (\code{train_frac = 1}),
+#' cross-validation is not possible and error rates are not estimated.
+#'
+#' The CART uses the following model formula:
+#'
+#' \code{nest ~ consec_days + perc_days_vis + perc_top_vis}
+#'
+#' The original tree is automatically pruned based on minimum error criterion:
+#' the tree is pruned back to the point where the cross-validated relative error
+#' (X-rel error) is at its minimum. If multiple trees compete at the minimum
+#' X-rel error, the smallest tree is picked.
+#'
+#' @param explodata \code{data.frame} of nests and non-nests as output by
+#' \code{get_explodata}
+#' @param train_frac Numeric. The fraction of data to use for training
+#' @return A \code{list} with ...
+#'
+#' @export
+discriminate_nests <- function(explodata, train_frac) {
 
+  # Transform flag (nest? y/n) to factor
+  explodata <- explodata %>%
+    mutate(nest = forcats::fct_relevel(as.factor(nest), "no", "yes"))
 
+  # Training dataset
+  train_data <- explodata %>%
+    group_by(nest) %>%
+    sample_frac(size = train_frac)
+
+  # Testing dataset
+  suppressMessages(test_data <- anti_join(explodata, train_data))
+
+  # Specify model
+  model <- "nest ~ consec_days + perc_days_vis + perc_top_vis"
+
+  # Run CART
+  cart <- rpart::rpart(model,
+                       data = train_data,
+                       method = "class",
+                       control = rpart::rpart.control(minsplit=1, cp=0.0001))
+
+  # Get X-rel error data to select optimal tree
+  invisible(capture.output(cart_summary <- summary(cart)))
+  cp_table <- cart_summary$cptable
+
+  # Choose the smallest tree that minimizes X-rel error
+  cp <- cp_table %>%
+    as.data.frame() %>%
+    filter(xerror == min(xerror)) %>%
+    slice(1) %>%
+    pull(CP)
+
+  # Prune tree
+  pruned_cart <- rpart::prune(cart, cp = cp)
+
+  # Plot pruned tree
+  rpart.plot::rpart.plot(pruned_cart, type=4, extra=1)
+
+  if (train_frac < 1) {
+
+    # Get model predictions on test data
+    model_test <- predict(pruned_cart, test_data, type="class")
+
+    # Estimate errors
+    err_table <- prop.table(table(model_test, test_data[, "nest"]))
+
+    # Type I error (false positive)
+    t1_err <- round(err_table[2, 1], 2)
+
+    # Type II error (false negative)
+    t2_err <- round(err_table[1, 2], 2)
+
+    } else if (train_frac == 1) {
+
+      t1_err <- "No test data: unable to calculate errors"
+      t2_err <- "No test data: unable to calculate errors"
+
+      }
+
+  # Error list
+  err_list <- list(t1_err, t2_err)
+  names(err_list) <- c("Type I error (false positives)",
+                       "Type II error (false negatives)")
+
+  # Return error rates
+  return(err_list)
+
+}

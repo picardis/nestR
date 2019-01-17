@@ -355,7 +355,7 @@ choose_overlapping <- function(attempts) {
                loc_id != current) %>%
       pull(loc_id)
 
-    results <- attempts %>%
+    attempts <- attempts %>%
       filter(!(loc_id %in% toss))
 
     discard_df <- discard_df %>%
