@@ -100,14 +100,19 @@
 #' setting \code{discard_overlapping} to \code{FALSE} retains all candidate
 #' nests in the results.
 #'
+#' After identifying all nests that correspond to the criteria defined in
+#' input, the function appends a new column to the original GPS data that
+#' flags fixes recorded at a nest with the location identifier of that nest.
+#' The result is a history of nest visits for each burst.
+#'
 #' @param gps_data \code{data.frame} of movement data. Needs to include burst,
 #' date, long, lat
 #' @param buffer Size of the buffer to compute location revisitation
 #' @param min_pts Minimum number of points within a buffer
-#' @param sea_start Integer (if Julian day) or date. Earliest date to be
-#' considered within the breeding season
-#' @param sea_end Integer (if Julian day) or date. Latest date to be
-#' considered within the breeding season
+#' @param sea_start Character string. Earliest date to be considered within the
+#' breeding season. Month and day, format \code{"mm-dd"}
+#' @param sea_end Character string. Latest date to be considered within the
+#' breeding season. Month and day, format \code{"mm-dd"}
 #' @param nest_cycle Duration of nesting cycle
 #' @param min_d_fix Minimum number of fixes for a day to be retained if no
 #' nest visit was recorded
@@ -118,8 +123,9 @@
 #' between first and last visit
 #' @param discard_overlapping If results include temporally overlapping
 #' attempts, select only one among those? Defaults to \code{TRUE}.
-#' @return Returns \code{data.frame} with nest locations and associated
-#' revisitation stats.
+#' @return Returns a \code{list} of two elements: first, a \code{data.frame}
+#' of nest locations and associated revisitation stats; second, a
+#' \code{data.frame} of nest revisitation histories.
 #'
 #' @export
 find_nests <- function(gps_data,
@@ -220,11 +226,11 @@ find_nests <- function(gps_data,
     # Join group ID back to the original data
     dat <- left_join(dat, cands, by = "loc_id")
 
-    # Save computation time: discard group IDs that appear on days < min_consec
+    # Save computation time: discard group IDs that appear on < 2 days
     keepers <- dat %>%
       group_by(group_id, reldate) %>%
       tally() %>%
-      filter(n >= min_consec) %>%
+      filter(n >= 2) %>%
       pull(group_id) %>%
       unique()
 
@@ -264,8 +270,8 @@ find_nests <- function(gps_data,
              perc_days_vis >= min_days_att,
              perc_top_vis >= min_top_att) %>%
       left_join(select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-      mutate(attempt_start = julian_to_date(sea_start, yr = min(lubridate::year(sub$date))) + attempt_start) %>%
-      mutate(attempt_end = julian_to_date(sea_start, yr = min(lubridate::year(sub$date))) + attempt_end) %>%
+      mutate(attempt_start = ymd(paste0(min(lubridate::year(sub$date)), sea_start)) + attempt_start) %>%
+      mutate(attempt_end = ymd(paste0(min(lubridate::year(sub$date)), sea_start)) + attempt_end) %>%
       mutate(burst = burst_id) %>%
       select(burst,
              loc_id = group_id,
@@ -301,11 +307,21 @@ find_nests <- function(gps_data,
 
     }
 
+    # Format visit history data.frame
+    visits <- dat %>%
+      mutate(group_id = case_when(
+        group_id %in% nests$loc_id ~ group_id,
+        TRUE ~ as.integer(0)
+      )) %>%
+      select(burst, date, long, lat, loc_id = group_id)
+
     cat("\nProcess completed!\n\n")
 
     saveRDS(nests, paste0(temp_name, "/nests_", burst_id, ".rds"))
+    saveRDS(visits, paste0(temp_name, "/visits_", burst_id, ".rds"))
 
     rm(nests)
+    rm(visits)
     gc()
 
   }
@@ -313,15 +329,26 @@ find_nests <- function(gps_data,
   cat("\nCompleted processing of all bursts.\n")
 
   # At the end
-  # Combine results
-  files <- list.files(temp_name, full.names = TRUE)
-  results <- data.frame()
-  for (f in files) {
+  # Combine results on nests
+  files_nests <- list.files(temp_name, pattern = "nests_", full.names = TRUE)
+  nests <- data.frame()
+  for (f in files_nests) {
     temp <- readRDS(f)
-    results <- rbind(results, temp)
+    nests <- rbind(nests, temp)
   }
+  # Combine results on loc2group
+  files_visits <- list.files(temp_name, pattern = "visits_", full.names = TRUE)
+  visits <- data.frame()
+  for (f in files_visits) {
+    temp <- readRDS(f)
+    visits <- rbind(visits, temp)
+  }
+  # Combine all
+  results <- list(nests, visits)
+  names(results) <- c("nests", "visits")
   # Delete temporary folder and files within it
-  file.remove(files)
+  file.remove(files_nests)
+  file.remove(files_visits)
   file.remove(temp_name)
 
   #Record the end time

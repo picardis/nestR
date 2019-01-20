@@ -68,8 +68,8 @@ usethis::use_data(gulls)
 # Example outputs ----
 
 wost_output_1 <- find_nests(gps_data = woodstorks,
-                    sea_start = 305,
-                    sea_end = 243,
+                    sea_start = "11-01",
+                    sea_end = "08-31",
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
@@ -79,11 +79,11 @@ wost_output_1 <- find_nests(gps_data = woodstorks,
                     min_days_att = 1,
                     discard_overlapping = FALSE)
 
-usethis::use_data(wost_output_1)
+usethis::use_data(wost_output_1, overwrite = TRUE)
 
 wost_output_2 <- find_nests(gps_data = woodstorks,
-                            sea_start = 305,
-                            sea_end = 243,
+                            sea_start = "11-01",
+                            sea_end = "08-31",
                             nest_cycle = 110,
                             buffer = 40,
                             min_pts = 2,
@@ -93,26 +93,21 @@ wost_output_2 <- find_nests(gps_data = woodstorks,
                             min_days_att = 53,
                             discard_overlapping = TRUE)
 
-usethis::use_data(wost_output_2)
+usethis::use_data(wost_output_2, overwrite = TRUE)
 
 wost_output_3 <- find_nests(gps_data = woodstorks,
-                            sea_start = 305,
-                            sea_end = 243,
+                            sea_start = "11-01",
+                            sea_end = "08-31",
                             nest_cycle = 110,
                             buffer = 40,
                             min_pts = 2,
                             min_d_fix = 5,
-                            min_consec = 1,
+                            min_consec = 2,
                             min_top_att = 94,
                             min_days_att = 53,
                             discard_overlapping = TRUE)
 
-usethis::use_data(wost_output_3)
-
-wost_nests <- bind_rows(wost_output_2, wost_output_3) %>%
-  unique()
-
-usethis::use_data(wost_nests)
+usethis::use_data(wost_output_3, overwrite = TRUE)
 
 # Known nest Jacksonville stork ----
 

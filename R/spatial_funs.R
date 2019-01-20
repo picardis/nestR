@@ -10,6 +10,7 @@
 #' @param dat \code{data.frame} of movement data for a single burst. Needs to
 #' include burst, date, long, lat
 #' @return Returns \code{data.table} with distance matrix.
+#' @export
 dist_mat <- function(dat){
 
   # Arrange distance matrix
@@ -65,6 +66,7 @@ dist_mat <- function(dat){
 #' @return Returns \code{data.frame} relating original location identifiers
 #' (\code{loc_id}) to the identifier of the corresponding candidate nest
 #' (\code{group_id}).
+#' @export
 get_candidates <- function(dm, buffer, min_pts = 2){
 
   # Pre-process distance matrix
@@ -133,6 +135,7 @@ get_candidates <- function(dm, buffer, min_pts = 2){
 #' candidates returned by \code{\link{get_candidates}}
 #' @return Returns \code{tibble} counting number of points within each
 #' candidate buffer.
+#' @export
 candidate_summary <- function(cands){
 
     cands <- cands %>%

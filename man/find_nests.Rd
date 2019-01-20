@@ -16,11 +16,11 @@ date, long, lat}
 
 \item{min_pts}{Minimum number of points within a buffer}
 
-\item{sea_start}{Integer (if Julian day) or date. Earliest date to be
-considered within the breeding season}
+\item{sea_start}{Character string. Earliest date to be considered within the
+breeding season. Month and day, format \code{"mm-dd"}}
 
-\item{sea_end}{Integer (if Julian day) or date. Latest date to be
-considered within the breeding season}
+\item{sea_end}{Character string. Latest date to be considered within the
+breeding season. Month and day, format \code{"mm-dd"}}
 
 \item{nest_cycle}{Duration of nesting cycle}
 
@@ -39,8 +39,9 @@ between first and last visit}
 attempts, select only one among those? Defaults to \code{TRUE}.}
 }
 \value{
-Returns \code{data.frame} with nest locations and associated
-revisitation stats.
+Returns a \code{list} of two elements: first, a \code{data.frame}
+of nest locations and associated revisitation stats; second, a
+\code{data.frame} of nest revisitation histories.
 }
 \description{
 \code{find_nests} finds nest locations from GPS data based on patterns of
@@ -144,4 +145,9 @@ simultaneously nest at more than one location. The location that is visited
 the most is assumed to be the most likely true nest. On the other hand,
 setting \code{discard_overlapping} to \code{FALSE} retains all candidate
 nests in the results.
+
+After identifying all nests that correspond to the criteria defined in
+input, the function appends a new column to the original GPS data that
+flags fixes recorded at a nest with the location identifier of that nest.
+The result is a history of nest visits for each burst.
 }

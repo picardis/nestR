@@ -10,19 +10,19 @@ date_handler(dat, sea_start, sea_end)
 \item{dat}{\code{data.frame} of movement data for a single burst. Needs to include
 burst, date, long, lat}
 
-\item{sea_start}{Integer (if Julian day) or date in which the nesting season
-starts}
+\item{sea_start}{Character string for month and day
+("mm-dd") in which the nesting season starts}
 
-\item{sea_end}{Integer (if Julian day) or date in which the nesting season
-ends}
+\item{sea_end}{Character string for month and day
+("mm-dd") in which the nesting season ends}
 }
 \value{
 Returns subset of data comprised within the nesting season
 }
 \description{
 \code{date_handler} finds the ymd starting and ending dates of the nesting
-season based on the dates given in input (as Julian day or date), and
-returns the subset of data that falls within the range. If inputting dates,
-the year can be a dummy year and the function will update it to the correct
-year for the current burst.
+season based on the dates given in input (as Julian day or a character
+string indicating month and day), and returns the subset of
+data that falls within the range. Inputting month and day is the recommended
+option.
 }
