@@ -14,7 +14,8 @@ Depends:
     dplyr,
     lubridate,
     data.table,
-    geosphere
+    geosphere,
+    rjags
 Imports: 
 RoxygenNote: 6.1.1
 Suggests: 

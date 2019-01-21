@@ -54,6 +54,9 @@ format_visits <- function(nest_info,
   # Matrix 2: number of visits per day
   mat_vis <- matrix(NA, nrow = nrow(attempts), ncol = nest_cycle)
 
+  # Set up rownames
+  rownames(mat_fix) <- rownames(mat_vis) <- 1:nrow(mat_fix)
+
   # Loop over attempts
   for (i in 1:nrow(attempts)) {
 
@@ -105,13 +108,13 @@ format_visits <- function(nest_info,
     mat_vis[i,] <- history$vis
 
     # Name rows with attempt ID
-    rownames(mat_fix) <- rownames(mat_vis) <- 1:nrow(mat_fix)
     rownames(mat_fix)[i] <- att$attempt_id
     rownames(mat_vis)[i] <- att$attempt_id
 
   }
 
   mats <- list(mat_fix, mat_vis)
+  names(mats) <- c("fixes", "visits")
 
   return(mats)
 

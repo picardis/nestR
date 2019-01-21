@@ -495,3 +495,32 @@ wost_nests <- wost_output_2
 Coming soon...
 
 ## Part II: Estimating reproductive outcome {#part2}
+
+```{r format data for outcome estimation}
+
+wost_attempts <- format_visits(nest_info = wost_nests, nest_cycle = 110)
+
+```
+
+
+``` {r run JAGS}
+
+#Using default MCMC parameters (mcmc_params)
+wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, visits = wost_attempts$visits)
+
+```
+
+Note that the JAGS estimation is done using the coda* functions, so the coda diagnostics are available, e.g.,
+
+``` {r coda diagnostics}
+
+#Summary plot
+plot(wost_outcomes)
+#Trace plots
+traceplot(wost_outcomes)
+#Autocorrelation
+autocorr.plot(wost_outcomes) #should thin by 5
+#Posterior PDF
+densplot(wost_outcomes)
+
+```

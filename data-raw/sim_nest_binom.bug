@@ -1,0 +1,24 @@
+model {
+# Priors and constraints
+for (i in 1:N){
+   for (t in 1:(D-1)){
+      phi[i,t] <- mean.phi
+      p[i,t] <- mean.p
+      } #t
+   } #i
+mean.phi ~ dbeta(1, 1)
+mean.p ~ dbeta(1, 1)
+# Likelihood 
+for (i in 1:N){
+   # Define latent state at first capture
+   z[i,1] <- 1
+   for (t in 2:D){
+      # State process
+      z[i,t] ~ dbern(mu1[i,t])
+      mu1[i,t] <- phi[i,t-1] * z[i,t-1]
+      # Observation process
+      y[i,t] ~ dbin(mu2[i,t], H[i,t])
+      mu2[i,t] <- p[i,t-1] * z[i,t]
+      } #t
+   } #i
+}
