@@ -39,8 +39,8 @@ check_input <- function(gps_data) {
 #' @param nest_info Output of \code{find_nests}
 #' @param nest_cycle Duration of nesting cycle
 #' @export
-format_visits <- function(nest_info,
-                          nest_cycle) {
+format_attempts <- function(nest_info,
+                            nest_cycle) {
 
   # Create unique attempt identifier
   attempts <- nest_info$nests %>%

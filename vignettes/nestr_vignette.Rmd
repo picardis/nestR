@@ -110,7 +110,11 @@ colnames(datasets_table) <- c("Dataset", "Time resolution", "Spatial resolution"
 kable(datasets_table) %>%
   kable_styling(bootstrap_options = c("striped", "bordered"),
                 font_size = 12, position = "center") %>% 
-  add_header_above(c(" " = 1, "Data characteristics" = 5, "Species biology" = 4))
+  add_header_above(c(" " = 1, "Data characteristics" = 5, "Species biology" = 4)) %>% 
+#  column_spec(2:6, background = "skyblue") %>% 
+#  column_spec(7:10, background = "palegreen") %>% 
+  column_spec(1, border_right = TRUE) %>% 
+  column_spec(6, border_right = TRUE)
 
 ```
 
@@ -119,13 +123,13 @@ Throughout this vignette, we will refer back to specific features of each datase
 
 ### Introducing the `find_nests` function
 
-The central function for the first part of the `nestR` workflow is `find_nests`. This function identifies potential nests based on patterns of location revisitation. It takes as input the GPS data and returns any revisited locations that match a set of user-defined parameter values, along with a revisitation history for each of those locations. Parameters can be conceptually organized in three groups:
+The central function for the first part of the `nestR` workflow is `find_nests`. This function identifies potential nests based on patterns of location revisitation. It takes as input the GPS data and returns any revisited locations that match a set of user-defined parameter values, along with their revisitation history. Input parameters can be conceptually organized in three groups:
 
 * Parameters related to basic information on the biology of the species;
 * Parameters related to data characteristics; 
 * Parameters used for discriminating nests from other repeatedly visited locations that are not nests.
 
-Typically, while prior information on the first two is available to the user, this is not the case for the third group of parameters. Therefore, our recommended workflow for finding nests involves the following steps:
+Typically, while prior information on the first two is available to the user, this might not be the case for the third group of parameters. Therefore, our recommended workflow for finding nests involves the following steps:
 
 1. Identifiying any recurrently visited locations along individual movement trajectories;
 1. Comparing revisitation patterns at nests versus non-nests and establish a way to tell them apart;
@@ -159,13 +163,13 @@ The next three arguments describe basic information of the biology of the  speci
 
 The next three arguments are related to data characteristics: 
 
-* `buffer` defines the spatial scale at which revisitation patterns will be calculated. Returns to a location are defined as returns to a circular area of radius = `buffer` (in meters). The use of this parameter is meant to account for the spatial scattering of GPS points around a nest due to both behavior (sometimes the tag will happen to record a point when the bird was in the proximity of the nest, possibly arriving or departing, and not exactly on it) and GPS error. The value of `buffer` needs to be set to a number at least as large as the spatial resolution of the GPS data. 
+* `buffer` defines the spatial scale at which revisitation patterns will be calculated. Returns to a location are defined as returns to a circular area of radius = `buffer` (in meters). The use of this parameter is meant to account for the spatial scattering of GPS points around a nest due to both behavior (sometimes the tag will happen to record a point when the bird was in the proximity of the nest, possibly arriving or departing, and not exactly on it) and GPS error. The value of `buffer` needs to be set to a number greater or equal to the spatial resolution of the GPS data. 
 
 * Revisitation stats will be computed on each area of size `buffer` that is visited multiple times. To speed up calculations, the user can discard isolated points from the get-go and not bother calculating revisitation stats on those. The parameter `min_pts` allows to specify a minimum number of points that need to fall within a point's buffer for it to be retained in the calculation of revisitation stats. 
 
 * Some of the revisitation stats included in the output of `find_nests` are based on the number of consecutive days a location is visited. For tags that have a high failure rate and a relatively low temporal resolution, it is easy to miss a nest visit even though it happened. This can break an otherwise continuous strike of days where visits were recorded. The argument `min_d_fix` allows the user to counteract the effect of missed visits, by setting a minimum number of fixes that need to be available in a day when no visit was detected for that day to be truly counted as non visited. In [the next section](#step1), we provide an example of when this is especially needed.
 
-The remaining arguments are used for filtering revisited locations based on revisitation patterns: 
+The remaining arguments are used for filtering locations based on revisitation patterns: 
 
 * Revisitation patterns include the number of consecutive days a location is visited, the percent of fixes at the location on the day with maximum attendance, and the percent of days a location is visited between the first and last visit. The user can set minimum values for each of these using `min_consec`, `min_top_att`, and `min_days_att`, respectively. Any location for which revisitation patterns do not exceed these user-defined thresholds will not be returned. Prior information regarding these parameters is likely not available to the user, and finding the best set of values to specify for these arguments will be the focus of [Step 2](#step2). 
 
@@ -198,9 +202,11 @@ are:
 * `perc_days_vis`, the percentage of days when the location was visited between the first and last visits;
 * `perc_top_vis`, the percentage of fixes at the location on the day with  maximum attendance.
 
-The days of first and last visit do not necessarily correspond to the start and end of a nesting attempt. If a bird visits the nest location before actually starting nesting, or returns to the nest after having completed the attempt, using the days of first and last visits as temporal limits of the attempt is going to be misleading. Since estimating the start and end dates of an attempt correctly will be critical for successfully estimating its outcome, `find_nests` takes into account the possibility of visits outside of the attempt, and cuts them out. The implementation is based on the value of `min_consec`: the attempt is estimated to start at the first occurrence of a strike of consecutive days at least as long as `min_consec`. Then, if the nest was visited for longer than the duration of a complete nesting attempt after that, the end date gets set at `attempt_start` + `nest_cycle`. If the last visit occurs before `attempt_start` + `nest_cycle`, then `attempt_end` is set to `last_date`. 
+Note the direct correspondence between the last three parameters and the three filtering arguments in input (`min_consec`, `perc_days_vis`, and `perc_top_vis`). 
 
-The second element of the list that `find_nests` returns as output is a `data.frame` named `visits`: this is essentially an updated version of the GPS data provided in input, with an additional column that flags any records taken at a nest with the location ID of that nest. This corresponds to the revisitation history of all nests listed in `nests`. This is what it looks like:
+The days of first and last visit do not necessarily correspond to the start and end of a nesting attempt. If a bird visits the nest location before actually starting to nest, or returns to the nest after having completed the attempt, using the days of first and last visits as temporal limits of the attempt is going to be misleading. Since estimating the start and end dates of an attempt correctly will be critical for successfully estimating its outcome, `find_nests` takes into account the possibility of visits outside of the attempt and cuts them out. The implementation is based on the value of `min_consec`: the attempt is estimated to start at the first occurrence of a strike of consecutive days at least as long as `min_consec`. Then, if the nest was visited for longer than the duration of a complete nesting attempt after that, the end date gets set at `attempt_start` + `nest_cycle` (that is, the latest date possible given the start date). If the last visit occurs before `attempt_start` + `nest_cycle`, then `attempt_end` is set to `last_date`. We stress the importance of being aware that the value of `min_consec` has an effect on the estimation of the temporal limits of nesting attempts.
+
+The second element of the list that `find_nests` returns as output is a `data.frame` named `visits`: this is essentially an updated version of the GPS data provided in input, with an additional column that flags any records taken at a nest with the location ID of that nest. Therefore, this `data.frame` contains the revisitation history of all nests listed in `nests`. This is what it looks like:
 
 ```{r output example visits, echo = FALSE}
 
@@ -214,13 +220,13 @@ wost_output_1$visits %>%
 
 ### Step 1: Identifying recurrently visited locations {#step1}
 
-Animals exhibit recursive movement patterns for a variety of reasons. In the  case of birds, locations that get visited recurrently can include nests as well as roosting sites, favorite foraging spots, and so on. However, patterns of  revisitation likely differ for locations that a bird visits for different  reasons. Nests are expected to be visited for longer strikes of consecutive  days, more consistently, or for longer or more times during a day compared to  other types of revisited locations. But *how much* more? It is our job to find  out. 
+Animals exhibit recursive movement patterns for a variety of reasons. In the  case of birds, locations that get visited recurrently can include nests as well as roosting sites, favorite foraging spots, and so on. However, patterns of  revisitation likely differ for locations that a bird visits for different  reasons. Nests are expected to be visited for longer strikes of consecutive  days, more consistently, or for longer/more times during a day compared to  other types of revisited locations. But *how much* more? It is our job to find  out. 
 
 As a first step, we suggest using the `find_nests` function to screen the data to identify recurrently visited locations, regardless of whether they  are nests or not. To do so, the user can specify low values for the arguments involved with the filtering, so that the constraints applied are loose. 
 
 Here is an example with wood storks. Wood storks nest at different times of the year in different parts of their range, so the first challenge with this species is that there isn't a well-defined nesting season. For example, wood storks in southern Florida usually breed between January and May, but those that nest in some areas farther north can start as late as March or April. Overall, we cannot exclude the possibility of observing nesting events any time between November and August. Therefore, we set `sea_start` and `sea_end` to November 1st and August 31st, respectively. The time required for an individual wood stork to complete its nesting cycle is 110 days. We set `nest_cycle` to this value.
 
-The spatial accuracy of the GPS data for wood storks is 18 meters according to the tag user manual. We set the value of `buffer` to 40 meters to allow some  extra room for spatial scattering of points around a central location. In general, we found that buffer sizes between 20 and 50 meters return comparable results in our three case studies. We encourage the user to explore results obtained with different buffer sizes and possibly fine-tune the value to one that well captures the spatial scale of recursive movements given the species and data at hand. We set `min_pts` to 2 to avoid calculating revisitation patterns for points that are relatively isolated. This is still a very low, conservative value. 
+The spatial accuracy of the GPS data for wood storks is 18 meters according to the tag user manual. We set the value of `buffer` to 40 meters to allow some  extra room for spatial scattering of points around a central location. In general, we found that buffer sizes between 20 and 50 meters return comparable results in our three case studies. We encourage the user to explore results obtained with different buffer sizes and possibly fine-tune the value to one that well captures the spatial scale of recursive movements given the species and data at hand. We set `min_pts` to 2 to avoid calculating revisitation patterns for points that are relatively isolated. This is still a very low, conservative value that nevertheless significantly helps reducing computation time.
 
 We set `min_d_fix` to 5, meaning that any day with no visit does not get counted as interrupting an otherwise continuous strike of consecutive days if the tag did not collect at least 5 fixes on that day. This is especially important for wood storks because the time interval between fixes is 1 hour, the tags are solar powered and therefore only take fixes during the daytime, and the failure rate is high. These factors combined mean that often there are only a handful of fixes collected on a day, and the probability of missing nest visits is high. If a strike of consecutive days is interrupted by one or more days with no recorded visit but that only include 1 to 4 fixes, we do not have enough information to truly determine if the nest was not visited, and we assume that a visit was  likely missed instead. As we will mention later, this is not as much of a  problem in the case of both kestrels and gulls, because those tags were set to collect data every 15 minutes and have a low failure rate, so that the  probability of missing visits to the nest is lower. 
 
@@ -315,7 +321,7 @@ The points are about 18 meters apart. That is well within what expected due to  
 
 Now, we want to select a non-nest among the other revisited locations. We want to pick a location that we are confident is not a nest but that gets as close as possible to the revisitation parameters of a true nest. This will give us the most power to discern nests from non-nests. 
 
-One way of going about this task would be to select the second most visited location in the set. The top visited location is not necessarily also the one with the  highest values for each of the other revisitation parameters, but usually the  total number of visits is a good predictor of how intensively a location gets revisited in all aspects. But how can we be sure that the second most visited location is not also a nest, maybe corresponding to a second nesting attempt?
+One way of going about this task would be to select the second most visited location in the set. The top visited location is not necessarily also the one with the  highest values for each of the other revisitation parameters, but usually the  total number of visits is a good predictor of overall revisitation intensity. But how can we be sure that the second most visited location is not also a nest, maybe corresponding to a second nesting attempt?
 
 Some species are known to be able to nest twice in the same breeding season if they start the first clutch early enough or if their first attempt fails. In this case, one way to be sure that the location we select is truly a non-nest is to choose one that temporally overlaps with the true nesting attempt at the known location. This is where having set `discard_overlapping = FALSE` in `find_nests` comes in handy, as it made sure that locations visited simultaneously to the true nest were still retained in our output. 
 
@@ -360,7 +366,7 @@ explore_nests(woodstorks)
 
 ```{r screenshot1, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-knitr::include_graphics("img/nestR_img1.png")
+knitr::include_graphics("img/nestR_img1.jpg")
 
 ```
 
@@ -504,31 +510,54 @@ wost_nests <- wost_output_2
 
 ```
 
-### Case studies: applying the method to different species and data
-
-Coming soon...
-
 ## Part II: Estimating reproductive outcome {#part2}
 
-### Work in progress...
+### Background
+
+Work in progress... 
+
+### Formatting data
+
+The function `format_attempts` organizes the data obtained as output from `find_nests` into the correct format for input into the next function. The output of `format_attempts` is a list of two matrices. Both matrices have the same size, with as many rows as the number of nesting attempts identified by `find_nests` and as many columns as the number of days in a complete nesting cycle. The first one is a matrix of fixes: for each attempt, it stores the number of GPS fixes that were taken on each day. The second one is a matrix of visits: for each attempt, it stores the number of nest visits that were recorded on each day. 
 
 ```{r format data for outcome estimation}
 
-wost_attempts <- format_visits(nest_info = wost_nests, nest_cycle = 110)
+wost_attempts <- format_attempts(nest_info = wost_nests, nest_cycle = 110)
 
 ```
 
+```{r show fixes}
 
-``` {r run JAGS, eval = FALSE}
+# Matrix of fixes
+wost_attempts$fixes
+
+```
+
+```{r show visits}
+
+# Matrix of visits
+wost_attempts$visits
+
+```
+
+The data is now ready to be analyzed to estimate the outcome of each nesting attempt. 
+
+### Introducing the `estimate_outcomes` function
+
+Work in progress...
+
+``` {r run JAGS, eval = FALSE, echo = FALSE}
 
 #Using default MCMC parameters (mcmc_params)
 wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, visits = wost_attempts$visits)
 
 ```
 
-Note that the JAGS estimation is done using the coda* functions, so the coda diagnostics are available, e.g.,
 
-``` {r coda diagnostics, eval = FALSE}
+``` {r coda diagnostics, eval = FALSE, echo = FALSE}
+
+# Note that the JAGS estimation is done using the coda* functions, 
+# so the coda diagnostics are available, e.g.,
 
 #Summary plot
 plot(wost_outcomes)
@@ -540,3 +569,7 @@ autocorr.plot(wost_outcomes) #should thin by 5
 densplot(wost_outcomes)
 
 ```
+
+## Case studies: applying the method to different species and data
+
+Coming soon...
