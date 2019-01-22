@@ -138,7 +138,7 @@ find_nests <- function(gps_data,
                   min_consec,
                   min_top_att,
                   min_days_att,
-                  discard_overlapping=TRUE) {
+                  discard_overlapping = TRUE) {
 
   # Check format of input data
   check_input(gps_data)

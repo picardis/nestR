@@ -348,19 +348,33 @@ The result of the automated process matches our expectations.
 
 For the second individual in the wood stork example dataset, no prior  information is available on the location of the nest. However, we can identify the likely location of the nest by visually inspecting revisited locations in the output of `find_nests`. 
 
-A useful tool available within `nestR` for visual exploration of the data is available with the function `interactive_nestR`. This function launches a shiny app that allows to interactively explore results of `find_nests` by visualizing them on a map. The app can be opened with RStudio or any browser software. Input parameters taken as arguments by `find_nests` can be manipulated on the spot and the corresponding results are displayed on a satellite map. 
+A useful tool available within `nestR` for visual exploration of the data is available with the function `explore_nests`. This function launches a shiny app that allows to interactively explore results of `find_nests` by visualizing them on a map. The app can be opened with RStudio or any browser software. Input parameters taken as arguments by `find_nests` can be manipulated on the spot and the corresponding results are displayed on a satellite map. 
 
-By launching `interactive_nestR` on the wood stork data, selecting the burst 1134370-2013, and inputting the same parameters we used when running  `find_nests`, we notice that the first location of the set (the most visited one), falls right on the Rookery Branch colony in Everglades National Park.  This, together with the fact that the location was visited a total of 589 times, for 61 days (of which 37 consecutive), 89.71% of the days between the first and last visit, and 100% of the time on the day with maximum attendance, makes us confident that the location represents a true nest. 
+By launching `explore_nests` on the wood stork data, selecting the burst 1134370-2013, and inputting the same parameters we used when running  `find_nests`, we notice that the first location of the set (the most visited one), falls right on the Rookery Branch colony in Everglades National Park.  This, together with the fact that the location was visited a total of 589 times, for 61 days (of which 37 consecutive), 89.71% of the days between the first and last visit, and 100% of the time on the day with maximum attendance, makes us confident that the location represents a true nest. 
 
-*insert screenshot of shiny app here*
+```{r shiny, eval = FALSE}
 
-*insert zoomed-in plot of top location and colony location*
+explore_nests(woodstorks)
+
+```
+
+```{r screenshot1, echo = FALSE, fig.cap = "", out.width = '100%'}
+
+knitr::include_graphics("img/nestR_img1.png")
+
+```
 
 ```{r wost2}
 
 wost_output_1$nests %>% 
   filter(burst == "1134370-2013") %>% 
   slice(1) 
+
+```
+
+```{r screenshot2, echo = FALSE, fig.cap = "", out.width = '100%'}
+
+knitr::include_graphics("img/nestR_img2.jpg")
 
 ```
 
@@ -496,6 +510,8 @@ Coming soon...
 
 ## Part II: Estimating reproductive outcome {#part2}
 
+### Work in progress...
+
 ```{r format data for outcome estimation}
 
 wost_attempts <- format_visits(nest_info = wost_nests, nest_cycle = 110)
@@ -503,7 +519,7 @@ wost_attempts <- format_visits(nest_info = wost_nests, nest_cycle = 110)
 ```
 
 
-``` {r run JAGS}
+``` {r run JAGS, eval = FALSE}
 
 #Using default MCMC parameters (mcmc_params)
 wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, visits = wost_attempts$visits)
@@ -512,7 +528,7 @@ wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, visits = wost_at
 
 Note that the JAGS estimation is done using the coda* functions, so the coda diagnostics are available, e.g.,
 
-``` {r coda diagnostics}
+``` {r coda diagnostics, eval = FALSE}
 
 #Summary plot
 plot(wost_outcomes)
