@@ -101,7 +101,7 @@ attempt_limits <- function(x, min_consec, nest_cycle){
     min()
 
   # Get the corresponding reldate
-  mw_start <- x$reldate[mw_start_ind]
+  mw_start <- min(x$reldate[mw_start_ind])
 
   # Moving window
 
@@ -147,7 +147,8 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 
     # Now pick the window with the maximum number of visits
     mw_res <- mw_res %>%
-      filter(n_visits == max(n_visits))
+      filter(n_visits == max(n_visits)) %>%
+      slice(1)
 
     #Return result
     return(mw_res)

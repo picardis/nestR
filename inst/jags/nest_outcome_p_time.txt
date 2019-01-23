@@ -1,0 +1,32 @@
+model {
+
+# Priors and constraints
+phi.b0 ~ dnorm(0, 1e-5)
+phi.b1 <- 0
+p.b0 ~ dnorm(0, 1e-5)
+p.b1 ~ dnorm(0, 1e-5)
+
+for (t in 1:(days-1)){
+    logit(phi[t]) <- phi.b0 + phi.b1 * t
+}
+
+for (t in 1:days){
+  logit(p[t]) <- p.b0 + p.b1 * t
+  }
+
+
+# Likelihood
+for (i in 1:nests){
+   # Define latent state at first capture
+   z[i, 1] <- 1
+   for (t in 2:days){
+      # State process
+      mu1[i, t] <- phi[t-1] * z[i, t-1]
+      z[i, t] ~ dbern(mu1[i, t])
+
+      # Observation process
+      mu2[i, t] <- p[t] * z[i, t]
+      y[i, t] ~ dbin(mu2[i, t], gps_fixes[i, t])
+      } #t
+   } #i
+}

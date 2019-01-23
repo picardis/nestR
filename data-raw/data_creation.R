@@ -43,7 +43,7 @@ wost_pt1 <- wost_t_raw %>%
 
 # Select one Wood Stork among the Jacksonville ones
 wost_pt2 <- wost_j_raw %>%
-  filter(burst == "414590-2009") %>%
+  filter(burst == "721290-2010") %>%
   as.data.frame()
 
 # Create example dataset for Wood Storks
@@ -61,7 +61,7 @@ gulls <- gulls_raw %>%
 
 # Save
 
-usethis::use_data(woodstorks)
+usethis::use_data(woodstorks, overwrite = TRUE)
 usethis::use_data(kestrels)
 usethis::use_data(gulls)
 
@@ -111,11 +111,11 @@ usethis::use_data(wost_output_3, overwrite = TRUE)
 
 # Known nest Jacksonville stork ----
 
-jax_known_nest <- data.frame(burst = "414590-2009",
+jax_known_nest <- data.frame(burst = "721290-2010",
                              long = -81.645249 ,
                              lat = 30.404849)
 
-usethis::use_data(jax_known_nest)
+usethis::use_data(jax_known_nest, overwrite = TRUE)
 
 # Simulated dataset of 200 nests for CART illustration ----
 

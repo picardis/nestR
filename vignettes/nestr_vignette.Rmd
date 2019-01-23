@@ -235,8 +235,8 @@ We set the three filtering arguments to low values, meaning that the constraints
 ```{r wost screening, eval = FALSE}
 
 wost_output_1 <- find_nests(gps_data = woodstorks,
-                    sea_start = 305,
-                    sea_end = 243,
+                    sea_start = "11-01",
+                    sea_end = "08-31",
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
@@ -287,11 +287,11 @@ Let's look at the first 10 revisited locations identified for this individual in
 
 ```{r jax}
 
-head(wost_output_1$nests %>% filter(burst == "414590-2009"), 10)
+head(wost_output_1$nests %>% filter(burst == "721290-2010"), 10)
 
 ```
 
-The first location was visited a total of 348 times, for 76 days (of which 40 consecutive). The bird went back to the location on 54.68% of days between the day of first and last visit. On the day the bird spent the most time at the  location, 100% of the fixes were at the location. This seems like a good  candidate nest. Let's compare its coordinates to the ones of the known nest and see if they match. 
+The first location was visited a total of 1066 times, for 143 days (of which 37 consecutive). The bird went back to the location on 54.17% of days between the day of first and last visit. On the day the bird spent the most time at the  location, 100% of the fixes were at the location. This seems like a good  candidate nest. Let's compare its coordinates to the ones of the known nest and see if they match. 
 
 ```{r known jax nest}
 
@@ -301,12 +301,12 @@ jax_known_nest
 
 ```
 
-The coordinates match until the third (longitude) and second (latitude) decimal  places. Let's see what distance that corresponds to:
+The coordinates match until the third (longitude) and fourth (latitude) decimal  places. Let's see what distance that corresponds to:
 
 ```{r dist}
 
 coords_cand <- wost_output_1$nests %>% 
-  filter(burst == "414590-2009") %>% 
+  filter(burst == "721290-2010") %>% 
   slice(1) %>% 
   select(long, lat)
 
@@ -317,7 +317,7 @@ geosphere::distGeo(coords_cand, coords_known)
 
 ```
 
-The points are about 18 meters apart. That is well within what expected due to  both GPS error and behavioral patterns affecting the signal we get in the data, and well within the 40 meters buffer we used to calculate revisits. We can  confidently confirm that that is the nest. 
+The points are about 24 meters apart. That is well within what expected due to both GPS error and behavioral patterns affecting the signal we get in the data, and well within the 40 meters buffer we used to calculate revisits. We can confidently confirm that that is the nest. 
 
 Now, we want to select a non-nest among the other revisited locations. We want to pick a location that we are confident is not a nest but that gets as close as possible to the revisitation parameters of a true nest. This will give us the most power to discern nests from non-nests. 
 
@@ -325,7 +325,7 @@ One way of going about this task would be to select the second most visited loca
 
 Some species are known to be able to nest twice in the same breeding season if they start the first clutch early enough or if their first attempt fails. In this case, one way to be sure that the location we select is truly a non-nest is to choose one that temporally overlaps with the true nesting attempt at the known location. This is where having set `discard_overlapping = FALSE` in `find_nests` comes in handy, as it made sure that locations visited simultaneously to the true nest were still retained in our output. 
 
-In the case of the Jacksonville stork, the nesting attempt at the true nest was estimated to start on March 3rd 2009 and end on June 22nd 2009. The second, third, fourth, and fifth location were all visited in a time range that does not overlap with that interval. The first instance of a location that was visited simultaneously to the true nest is the sixth location in the set. Since wood  storks are able to do repeated nesting attempts, we can choose to be conservative and select the fifth location as a non-nest to compare the nest to, rather than the second. 
+In the case of the Jacksonville stork, the nesting attempt at the true nest was estimated to start on March 24th 2010 and end on July 7th 2010. The second and third locations were both visited in a time range that does not overlap with that interval. The first instance of a location that was visited simultaneously to the true nest is the fourth location in the set. Since wood storks are able to do repeated nesting attempts, we can choose to be conservative and select the fourth location as a non-nest to compare the nest to, rather than the second. 
 
 The function `get_explodata` automates the process we described so far. It takes as input the list of candidate nests output by `find_nests`, and a data frame of coordinates for the known nests (`known_coords`). The argument  `pick_overlapping` allows the user to decide whether the criterion of temporal  overlap to a true nest gets applied or not when selecting a non-nest. For  species that do not re-nest, this might not be necessary. The function is also  designed to handle two possible sources of error that could arise from  automating the process instead of supervising it:
 
@@ -339,7 +339,7 @@ Here is the output of `get_explodata` for the Jacksonville stork:
 ```{r get explo stork 1}
 
 output_stork1 <- wost_output_1$nests %>% 
-  filter(burst == "414590-2009")
+  filter(burst == "721290-2010")
 
 (explodata_stork1 <- get_explodata(candidate_nests = output_stork1, 
                                   known_coords = jax_known_nest,
@@ -469,9 +469,9 @@ wost_output_2$nests
 
 ```
 
-Good news! The function identified the known nest correctly for both burst 1134370-2013 and 414590-2009. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after  leaving Rookery Bay, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second  time there. 
+Good news! The function identified the known nest correctly for both burst 1134370-2013 and 721290-2010. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after leaving Rookery Bay, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second time there. 
 
-Let's  see what happens with the other set of parameters:
+Let's see what happens with the other set of parameters:
 
 ```{r find nests 2, eval = FALSE}
 
@@ -498,7 +498,7 @@ wost_output_3$nests
 
 ```
 
-The correct nest for 414590-2009 was returned as well as the two nests we found with the previous set of parameters for 1134370-2013. In this case, all nests satisfied the criteria defined in both sets of filtering parameters. 
+The correct nest for 721290-2010 was returned as well as the two nests we found with the previous set of parameters for 1134370-2013. In this case, all nests satisfied the criteria defined in both sets of filtering parameters. 
 
 Since all nests were identified with both sets of parameters, there is no need to merge the two outputs. However, for 1134370-2013 at location 2170, the attempt start dates estimated with the first and second set of parameters differ. This is because the value of `min_consec` used in input differs between the two sets. Recall that `find_nests` sets the start of a nesting attempt to the first occurrence of a strike of consecutive days at least as long as `min_consec`, to avoid counting extra visits to the nest location as part of the attempt. Which output to choose is essentially a judgement call, which should once again be driven by knowledge of the species' ecology. Wood stork attendance at the nest is almost uninterrupted in the initial phase of nesting (during pair formation, nest building, and early incubation). Therefore, we expect that the longest strike of consecutive days we observe corresponds to the very beginning of a nesting attempt. Missed nest visits could be problematic in this case, but setting `min_d_fix` to a large enough value should make us feel relatively safe. Based on these considerations, we choose to retain the output obtained with the stricter threshold of `min_consec` - which corresponds to the shorter attempt duration. This choice will ensure a more conservative estimation of nesting outcome later on. 
 
@@ -514,7 +514,11 @@ wost_nests <- wost_output_2
 
 ### Background
 
-Work in progress... 
+Nesting birds keep returning to their nest to feed their offspring until fledging. Histories of nest revisitation obtained from GPS data can be used to estimate the outcome of nesting attempts. Specifically, we can estimate if an attempt was successful or not according to whether it lasted as long as the duration of a complete nesting cycle for the species at hand. The underlying assumption is that the nest stops being revisited after an attempt fails, which is true for many bird species. 
+
+Two elements complicate the picture: first, GPS fixes are not recorded in real time, which means some visits to a nest may be missed. Second, nest attendance can vary throughout the nesting cycle as a function of developmental stage of the chicks, so that visits may become less frequent and/or shorter with time. This means that the probability of observing a nest visit in the GPS data given that it happened may decrease with time during the nesting attempt. 
+
+Functions in `nestR` allow the estimation of reproductive outcome from GPS-derived nest revisitation histories while taking into account the probability of visit detection and allowing both detection and survival probability to vary in time. 
 
 ### Formatting data
 
@@ -540,33 +544,72 @@ wost_attempts$visits
 
 ```
 
-The data is now ready to be analyzed to estimate the outcome of each nesting attempt. 
+### Model specification
 
-### Introducing the `estimate_outcomes` function
+The function `estimate_outcomes` fits a Bayesian hierarchical model to the histories of nest revisitation and estimates the probability that each nest is still active (i.e., "alive") on the last day of the attempt. Under the hood, `estimate_outcomes` uses JAGS to run the MCMC. The user can control parameters of the MCMC by passing them to the argument `mcmc_params`. The model is specified using uninformative priors. 
 
-Work in progress...
+The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Specifically, the latent nest survival variable is modelled at the daily scale as a function of survival status at the previous time-step and survival probability:
+
+$Z_t \sim Bern(Z_{t-1} \times \phi_{t-1})$
+
+Observed visits are modelled as a function of current nest survival status, probability of visit detection, and number of GPS fixes available on that day: 
+
+$Y_t \sim Binom(Z_t \times p_t, N_t)$
+
+Where the probability of detection is:
+
+$p_t = P(visit| Z_t = 1, N_t = n)$
+
+Reproductive outcome is defined as the value of Z on day `nest_cycle`. 
 
 ``` {r run JAGS, eval = FALSE, echo = FALSE}
 
 #Using default MCMC parameters (mcmc_params)
-wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, visits = wost_attempts$visits)
+wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, 
+                                   visits = wost_attempts$visits,
+                                   model = "phi_time_p_time")
+
+```
+
+``` {r wost_outcomes structure, eval = FALSE, echo = FALSE}
+str(wost_outcomes)
 
 ```
 
 
+``` {r custom summary plots, eval = FALSE, echo = FALSE}
+
+# Plot population-level daily survival
+plot_survival(wost_outcomes)
+
+# Plot population-level detection
+plot_detection(wost_outcomes)
+
+# Plot estimated survival for burst 1
+plot_nest_surv(wost_outcomes, who = 1)
+
+# Plot estimated survival for burst 2
+plot_nest_surv(wost_outcomes, who = 2)
+
+# Plot estimated survival for burst 3
+plot_nest_surv(wost_outcomes, who = 3)
+
+
+````
+
+
 ``` {r coda diagnostics, eval = FALSE, echo = FALSE}
 
-# Note that the JAGS estimation is done using the coda* functions, 
-# so the coda diagnostics are available, e.g.,
+# Note that the JAGS estimation returns a list of mcarray objects. To use
+  # the coda diagnostic functions, you must us as.mcmc.list()
+
+wost_pb0_coda <- as.mcmc.list(wost_outcomes$p.b0)
+wost_pb1_coda <- as.mcmc.list(wost_outcomes$p.b1)
 
 #Summary plot
-plot(wost_outcomes)
-#Trace plots
-traceplot(wost_outcomes)
-#Autocorrelation
-autocorr.plot(wost_outcomes) #should thin by 5
-#Posterior PDF
-densplot(wost_outcomes)
+plot(wost_pb0_coda)
+plot(wost_pb1_coda)
+
 
 ```
 
