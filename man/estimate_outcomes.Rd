@@ -2,22 +2,41 @@
 % Please edit documentation in R/outcome_funs.R
 \name{estimate_outcomes}
 \alias{estimate_outcomes}
-\title{Estimates nesting outcomes}
+\title{Estimate nesting outcomes}
 \usage{
 estimate_outcomes(fixes, visits, model = "null",
   mcmc_params = list(burn_in = 1000, n_chain = 2, thin = 5, n_adapt =
   1000, n_iter = 10000))
 }
 \arguments{
-\item{fixes}{A matrix of the number of GPS fixes on each day of the nesting attempt
-as returned by \code{\link{format_visits}}.}
+\item{fixes}{A matrix of the number of GPS fixes on each day of the nesting
+attempt as returned by \code{\link{format_visits}}.}
 
-\item{visits}{A matrix of the number of nest visits on each day of the nesting attempt
-as returned by \code{\link{format_visits}}.}
+\item{visits}{A matrix of the number of nest visits on each day of the nesting
+attempt as returned by \code{\link{format_visits}}.}
+
+\item{model}{Type of model to be run. One of "null", "p_time", "phi_time",
+or "phi_time_p_time".}
+
+\item{mcmc_params}{List of MCMC parameters. \code{burn_in}, \code{n_chain},
+\code{thin}, \code{n_adapt}, \code{n_iter}}
+}
+\value{
+A list of \code{mcarray} objects.
 }
 \description{
-\code{estimate_outcomes} does blah blah blah...
+\code{estimate_outcomes} fits a Bayesian hierarchical model to the histories
+of nest revisitation to estimate the outcome of nesting attempts.
 }
 \details{
-Data can be passed from \code{\link{format_visits}}... blah blah blah
+Data can be passed from \code{\link{format_visits}} to the function
+arguments \code{fixes} and \code{visits}.
+
+The function runs a JAGS MCMC with uninformative priors for the estimation of
+nest survival. Parameters for the MCMC can be specified by the user by passing
+them as a list to \code{mcmc_params}.
+
+The user can choose among four possible models: a null model with constant p
+and phi; a model where p varies with time; a model where phi varies with time;
+and a model where both p and phi vary with time.
 }

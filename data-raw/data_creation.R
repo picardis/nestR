@@ -234,3 +234,15 @@ explodata_storks$perc_top_vis <- ifelse(explodata_storks$perc_top_vis > 100,
                                         100, explodata_storks$perc_top_vis)
 
 usethis::use_data(explodata_storks)
+
+# WOST reproductive outcome data ----
+
+wost_nests <- wost_output_2
+
+wost_attempts <- format_attempts(nest_info = wost_nests, nest_cycle = 110)
+
+wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes,
+                                   visits = wost_attempts$visits,
+                                   model = "p_time")
+
+usethis::use_data(wost_outcomes)

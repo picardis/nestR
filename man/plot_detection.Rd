@@ -2,10 +2,19 @@
 % Please edit documentation in R/outcome_funs.R
 \name{plot_detection}
 \alias{plot_detection}
-\title{Plot detection over time from MCMC run}
+\title{Plot detection probability over time from MCMC run}
 \usage{
 plot_detection(mcmc_obj, ci = 0.95)
 }
+\arguments{
+\item{mcmc_obj}{List of \code{mcarrays} output by \code{estimate_outcomes}.}
+
+\item{ci}{Numeric. Credible interval level.}
+}
+\value{
+A plot of nest detection probability over time.
+}
 \description{
-Blah
+\code{plot_detection} makes a plot of mean nest detection probability over time
+as estimated by \code{estimate_outcomes}.
 }

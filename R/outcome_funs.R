@@ -1,22 +1,25 @@
-#' Sets initial known-state values prior to JAGS MCMC
+#' Set initial known-state values prior to JAGS MCMC
 #'
 #' This function is used in \code{estimate_outcomes}
-#' Used to intialize the latent variable \code{z} in the JAGS MCMC.
+#' Used to initialize the latent variable \code{z} in the JAGS MCMC.
 #' Sets \code{z} = 1 for all time steps in between the first sighting
 #' and the last sighting.
 #'
+#' @param ch Capture history, i.e., matrix of nest visits
+#' @return A matrix of initial states for each nesting attempt
+#'
 #' @export
-initialize_z <- function(ch){
+initialize_z <- function(ch) {
   # Initialize state using the "capture history" (in CMR parlance)
   state <- ch
 
   # Loop through each nest
-  for (i in 1:nrow(ch)){
+  for (i in 1:nrow(ch)) {
     # The earliest "sighting" will always be the first day of the attempt
     n1 <- 1
 
     # The last sighting is the last time the animal was observed at the nest
-    n2 <- max(which(ch[i,]>0))
+    n2 <- max(which(ch[i,] > 0))
 
     # Set all states between first and last to 1
     state[i, n1:n2] <- 1
@@ -26,21 +29,38 @@ initialize_z <- function(ch){
   }
 
   # Now set any states remaining as 0 to NA so that JAGS will estimate them
-  state[state==0] <- NA
+  state[state == 0] <- NA
 
   # Return
   return(state)
 }
 
-#' Estimates nesting outcomes
+#' Estimate nesting outcomes
 #'
-#' \code{estimate_outcomes} does blah blah blah...
-#' @details Data can be passed from \code{\link{format_visits}}... blah blah blah
+#' \code{estimate_outcomes} fits a Bayesian hierarchical model to the histories
+#' of nest revisitation to estimate the outcome of nesting attempts.
 #'
-#' @param fixes A matrix of the number of GPS fixes on each day of the nesting attempt
-#'   as returned by \code{\link{format_visits}}.
-#' @param visits A matrix of the number of nest visits on each day of the nesting attempt
-#'   as returned by \code{\link{format_visits}}.
+#' @details Data can be passed from \code{\link{format_visits}} to the function
+#' arguments \code{fixes} and \code{visits}.
+#'
+#' The function runs a JAGS MCMC with uninformative priors for the estimation of
+#' nest survival. Parameters for the MCMC can be specified by the user by passing
+#' them as a list to \code{mcmc_params}.
+#'
+#' The user can choose among four possible models: a null model with constant p
+#' and phi; a model where p varies with time; a model where phi varies with time;
+#' and a model where both p and phi vary with time.
+#'
+#' @param fixes A matrix of the number of GPS fixes on each day of the nesting
+#' attempt as returned by \code{\link{format_visits}}.
+#' @param visits A matrix of the number of nest visits on each day of the nesting
+#' attempt as returned by \code{\link{format_visits}}.
+#' @param model Type of model to be run. One of "null", "p_time", "phi_time",
+#' or "phi_time_p_time".
+#' @param mcmc_params List of MCMC parameters. \code{burn_in}, \code{n_chain},
+#' \code{thin}, \code{n_adapt}, \code{n_iter}
+#'
+#' @return A list of \code{mcarray} objects.
 #'
 #' @export
 estimate_outcomes <- function(fixes,
@@ -50,8 +70,8 @@ estimate_outcomes <- function(fixes,
                                                  n_chain = 2,
                                                  thin = 5,
                                                  n_adapt = 1000,
-                                                 n_iter = 10000)
-){
+                                                 n_iter = 10000)){
+
   # Select the correct JAGS file for the model
   model_txt <- case_when(
     model == "null" ~ "nest_outcome_null.txt",
@@ -91,7 +111,13 @@ estimate_outcomes <- function(fixes,
 
 #' Plot survival over time from MCMC run
 #'
-#' Blah
+#' \code{plot_survival} makes a plot of mean nest survival over time
+#' as estimated by \code{estimate_outcomes}.
+#'
+#' @param mcmc_obj List of \code{mcarrays} output by \code{estimate_outcomes}.
+#' @param ci Numeric. Credible interval level.
+#'
+#' @return A plot of nest survival over time.
 #'
 #' @export
 plot_survival <- function(mcmc_obj, ci = 0.95){
@@ -103,23 +129,41 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
   lwr <- 0 + (1 - ci)/2
   upr <- 1 - (1 - ci)/2
 
+  # Data frame
   # Mean across all MCMC iterations and chains
-  phi_mean <- apply(phi, 1, mean)
-  # Get lower credible interval across all MCMC iterations and chains
-  phi_lwr <- apply(phi, 1, quantile, lwr)
-  # Get upper credible interval across all MCMC iterations and chains
-  phi_upr <- apply(phi, 1, quantile, upr)
+  # Credible intervals across all MCMC iterations and chains
+  phi_df <- data.frame(phi_mean = apply(phi, 1, mean),
+                       phi_lwr <- apply(phi, 1, quantile, lwr),
+                       phi_upr <- apply(phi, 1, quantile, upr))
 
   # Plot
-  plot(1:length(phi_mean), phi_mean, ylim = c(0,1),
-       type = "l", xlab = "Day", ylab = "Daily Survival")
-  lines(1:length(phi_mean), phi_lwr, lty=2)
-  lines(1:length(phi_mean), phi_upr, lty=2)
+  ggplot2::ggplot(phi_df,
+                  ggplot2::aes(1:length(phi_mean), phi_mean)) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::geom_line() +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = phi_lwr,
+                                      ymax = phi_upr),
+                         fill = "cornflowerblue",
+                         alpha = 0.5) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+          axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
+          axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
+    ggplot2::ylab("Daily Survival (Z)") +
+    ggplot2::xlab("Days") +
+    ggplot2::ggtitle("Survival")
+
 }
 
-#' Plot detection over time from MCMC run
+#' Plot detection probability over time from MCMC run
 #'
-#' Blah
+#' \code{plot_detection} makes a plot of mean nest detection probability over time
+#' as estimated by \code{estimate_outcomes}.
+#'
+#' @param mcmc_obj List of \code{mcarrays} output by \code{estimate_outcomes}.
+#' @param ci Numeric. Credible interval level.
+#'
+#' @return A plot of nest detection probability over time.
 #'
 #' @export
 plot_detection <- function(mcmc_obj, ci = 0.95){
@@ -131,23 +175,42 @@ plot_detection <- function(mcmc_obj, ci = 0.95){
   lwr <- 0 + (1 - ci)/2
   upr <- 1 - (1 - ci)/2
 
+  # Data frame
   # Mean across all MCMC iterations and chains
-  p_mean <- apply(p, 1, mean)
-  # Get lower credible interval across all MCMC iterations and chains
-  p_lwr <- apply(p, 1, quantile, lwr)
-  # Get upper credible interval across all MCMC iterations and chains
-  p_upr <- apply(p, 1, quantile, upr)
+  # Credible intervals across all MCMC iterations and chains
+  p_df <- data.frame(p_mean = apply(p, 1, mean),
+                       p_lwr <- apply(p, 1, quantile, lwr),
+                       p_upr <- apply(p, 1, quantile, upr))
 
   # Plot
-  plot(1:length(p_mean), p_mean, ylim = c(0,1),
-       type = "l", xlab = "Day", ylab = "Detection Probability")
-  lines(1:length(p_mean), p_lwr, lty=2)
-  lines(1:length(p_mean), p_upr, lty=2)
+  ggplot2::ggplot(p_df,
+                  ggplot2::aes(1:length(p_mean), p_mean)) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::geom_line() +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = p_lwr,
+                                      ymax = p_upr),
+                         fill = "darkseagreen3",
+                         alpha = 0.5) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                   axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
+                   axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
+    ggplot2::ylab("Daily Detection Probability (p)") +
+    ggplot2::xlab("Days") +
+    ggplot2::ggtitle("Detection Probability")
+
 }
 
-#' Plot latent survival for an individual nest
+#' Plot nest survival over time from MCMC run
 #'
-#' Blah
+#' \code{plot_nest_surv} makes a plot of nest survival over time for a chosen
+#' nesting attempt as estimated by \code{estimate_outcomes}.
+#'
+#' @param mcmc_obj List of \code{mcarrays} output by \code{estimate_outcomes}.
+#' @param who Integer. Which nesting attempt to plot.
+#' @param ci Numeric. Credible interval level.
+#'
+#' @return A plot of individual nest survival over time.
 #'
 #' @export
 plot_nest_surv <- function(mcmc_obj, who = 1, ci = 0.95){
@@ -162,17 +225,29 @@ plot_nest_surv <- function(mcmc_obj, who = 1, ci = 0.95){
   lwr <- 0 + (1 - ci)/2
   upr <- 1 - (1 - ci)/2
 
+  # Data frame
   # Mean across all MCMC iterations and chains
-  z_mean <- apply(z_ind, 1, mean)
-  # Get lower credible interval across all MCMC iterations and chains
-  z_lwr <- apply(z_ind, 1, quantile, lwr)
-  # Get upper credible interval across all MCMC iterations and chains
-  z_upr <- apply(z_ind, 1, quantile, upr)
+  # Credible intervals across all MCMC iterations and chains
+  zind_df <- data.frame(z_mean = apply(z_ind, 1, mean),
+                       z_lwr <- apply(z_ind, 1, quantile, lwr),
+                       z_upr <- apply(z_ind, 1, quantile, upr))
 
   # Plot
-  plot(1:length(z_mean), z_mean, ylim = c(0,1),
-       type = "l", xlab = "Day", ylab = "Probability Nest Survives")
-  lines(1:length(z_mean), z_lwr, lty=2)
-  lines(1:length(z_mean), z_upr, lty=2)
+  ggplot2::ggplot(zind_df,
+                  ggplot2::aes(1:length(z_mean), z_mean)) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::geom_line() +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = z_lwr,
+                                      ymax = z_upr),
+                         fill = "cornflowerblue",
+                         alpha = 0.5) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                   axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
+                   axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
+    ggplot2::ylab("Daily Survival (Z)") +
+    ggplot2::xlab("Days") +
+    ggplot2::ggtitle(paste0("Survival of Nest", " (insert burst id here)"))
+
 }
 

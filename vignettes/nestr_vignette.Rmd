@@ -87,6 +87,7 @@ The process of identifying nesting locations from GPS data relies on two compone
 
 The datasets included in the `nestR` package differ both in terms of species biology and data characteristics. The following table summarizes the main differences:
 
+<br>
 
 ```{r table, echo = FALSE}
 
@@ -118,6 +119,7 @@ kable(datasets_table) %>%
 
 ```
 
+<br>
 
 Throughout this vignette, we will refer back to specific features of each dataset and illustrate how these can and need to be accounted for when using functions in the `nestR` package. 
 
@@ -206,7 +208,7 @@ Note the direct correspondence between the last three parameters and the three f
 
 The days of first and last visit do not necessarily correspond to the start and end of a nesting attempt. If a bird visits the nest location before actually starting to nest, or returns to the nest after having completed the attempt, using the days of first and last visits as temporal limits of the attempt is going to be misleading. Since estimating the start and end dates of an attempt correctly will be critical for successfully estimating its outcome, `find_nests` takes into account the possibility of visits outside of the attempt and cuts them out. The implementation is based on the value of `min_consec`: the attempt is estimated to start at the first occurrence of a strike of consecutive days at least as long as `min_consec`. Then, if the nest was visited for longer than the duration of a complete nesting attempt after that, the end date gets set at `attempt_start` + `nest_cycle` (that is, the latest date possible given the start date). If the last visit occurs before `attempt_start` + `nest_cycle`, then `attempt_end` is set to `last_date`. We stress the importance of being aware that the value of `min_consec` has an effect on the estimation of the temporal limits of nesting attempts.
 
-The second element of the list that `find_nests` returns as output is a `data.frame` named `visits`: this is essentially an updated version of the GPS data provided in input, with an additional column that flags any records taken at a nest with the location ID of that nest. Therefore, this `data.frame` contains the revisitation history of all nests listed in `nests`. This is what it looks like:
+The second element of the list that `find_nests` returns as output is a `data.frame` named `visits`: this is essentially an updated version of the GPS data provided in input, with an additional column that flags any records taken at a nest with the location ID of that nest. Locations away from the nest are assigned zeroes. Therefore, `visits` contains the revisitation history of all nests listed in `nests`. This is what it looks like:
 
 ```{r output example visits, echo = FALSE}
 
@@ -226,7 +228,7 @@ As a first step, we suggest using the `find_nests` function to screen the data t
 
 Here is an example with wood storks. Wood storks nest at different times of the year in different parts of their range, so the first challenge with this species is that there isn't a well-defined nesting season. For example, wood storks in southern Florida usually breed between January and May, but those that nest in some areas farther north can start as late as March or April. Overall, we cannot exclude the possibility of observing nesting events any time between November and August. Therefore, we set `sea_start` and `sea_end` to November 1st and August 31st, respectively. The time required for an individual wood stork to complete its nesting cycle is 110 days. We set `nest_cycle` to this value.
 
-The spatial accuracy of the GPS data for wood storks is 18 meters according to the tag user manual. We set the value of `buffer` to 40 meters to allow some  extra room for spatial scattering of points around a central location. In general, we found that buffer sizes between 20 and 50 meters return comparable results in our three case studies. We encourage the user to explore results obtained with different buffer sizes and possibly fine-tune the value to one that well captures the spatial scale of recursive movements given the species and data at hand. We set `min_pts` to 2 to avoid calculating revisitation patterns for points that are relatively isolated. This is still a very low, conservative value that nevertheless significantly helps reducing computation time.
+The spatial accuracy of the GPS data for wood storks is 18 meters according to the tag user manual. We set the value of `buffer` to 40 meters to allow some  extra room for spatial scattering of points around a central location. In general, we found that buffer sizes between 20 and 50 meters return comparable results in our three case studies. We encourage the user to explore results obtained with different buffer sizes and possibly fine-tune the value to one that well captures the spatial scale of recursive movements given the species and data at hand. We set `min_pts` to 2 to avoid calculating revisitation patterns for points that are relatively isolated. This is still a very low, conservative value that nevertheless substantially helps reducing computation time.
 
 We set `min_d_fix` to 5, meaning that any day with no visit does not get counted as interrupting an otherwise continuous strike of consecutive days if the tag did not collect at least 5 fixes on that day. This is especially important for wood storks because the time interval between fixes is 1 hour, the tags are solar powered and therefore only take fixes during the daytime, and the failure rate is high. These factors combined mean that often there are only a handful of fixes collected on a day, and the probability of missing nest visits is high. If a strike of consecutive days is interrupted by one or more days with no recorded visit but that only include 1 to 4 fixes, we do not have enough information to truly determine if the nest was not visited, and we assume that a visit was  likely missed instead. As we will mention later, this is not as much of a  problem in the case of both kestrels and gulls, because those tags were set to collect data every 15 minutes and have a low failure rate, so that the  probability of missing visits to the nest is lower. 
 
@@ -287,7 +289,7 @@ Let's look at the first 10 revisited locations identified for this individual in
 
 ```{r jax}
 
-head(wost_output_1$nests %>% filter(burst == "721290-2010"), 10)
+head(wost_output_1$nests %>% filter(burst == "721290-2010"))
 
 ```
 
@@ -384,6 +386,8 @@ knitr::include_graphics("img/nestR_img2.jpg")
 
 ```
 
+<br>
+
 The function `get_explodata` allows to input information on true nests in an alternative way that works well in this case: instead of providing the nest coordinates by passing `known_coords` to the function, the user can provide the  location ID instead, by using the argument `known_ids`. We can thus run  `get_explodata` on wood stork 1134370-2013 by specifying the location ID of the point we trust to be a nest: 
 
 ```{r get explo stork 2}
@@ -425,7 +429,7 @@ set.seed(22)
 
 ```{r cart example, fig.width = 7, fig.height = 6, fig.align = 'center'}
 
-(ws_cart <- discriminate_nests(explodata=explodata_storks, train_frac=0.5))
+(ws_cart <- discriminate_nests(explodata = explodata_storks, train_frac = 0.5))
 
 ```
 
@@ -469,7 +473,7 @@ wost_output_2$nests
 
 ```
 
-Good news! The function identified the known nest correctly for both burst 1134370-2013 and 721290-2010. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after leaving Rookery Bay, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second time there. 
+Good news! The function identified the known nest correctly for both burst 1134370-2013 and 721290-2010. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after leaving Rookery Branch, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second time there. 
 
 Let's see what happens with the other set of parameters:
 
@@ -533,51 +537,74 @@ wost_attempts <- format_attempts(nest_info = wost_nests, nest_cycle = 110)
 ```{r show fixes}
 
 # Matrix of fixes
-wost_attempts$fixes
+class(wost_attempts$fixes)
+dim(wost_attempts$fixes)
 
 ```
 
 ```{r show visits}
 
 # Matrix of visits
-wost_attempts$visits
+class(wost_attempts$visits)
+dim(wost_attempts$visits)
 
 ```
+
+These two matrices will be used as input in the function that estimates the outcome of nesting attempts. 
 
 ### Model specification
 
 The function `estimate_outcomes` fits a Bayesian hierarchical model to the histories of nest revisitation and estimates the probability that each nest is still active (i.e., "alive") on the last day of the attempt. Under the hood, `estimate_outcomes` uses JAGS to run the MCMC. The user can control parameters of the MCMC by passing them to the argument `mcmc_params`. The model is specified using uninformative priors. 
 
-The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Specifically, the latent nest survival variable is modelled at the daily scale as a function of survival status at the previous time-step and survival probability:
+The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Specifically, the latent nest survival variable is modelled at the daily scale as a function of survival status at the previous time-step and daily survival probability:
+
+<br>
 
 $Z_t \sim Bern(Z_{t-1} \times \phi_{t-1})$
 
+<br>
+
 Observed visits are modelled as a function of current nest survival status, probability of visit detection, and number of GPS fixes available on that day: 
+
+<br>
 
 $Y_t \sim Binom(Z_t \times p_t, N_t)$
 
+<br>
+
 Where the probability of detection is:
+
+<br>
 
 $p_t = P(visit| Z_t = 1, N_t = n)$
 
-Reproductive outcome is defined as the value of Z on day `nest_cycle`. 
+<br>
 
-``` {r run JAGS, eval = FALSE, echo = FALSE}
+Reproductive outcome is defined as the value of Z on day = `nest_cycle`. 
 
-#Using default MCMC parameters (mcmc_params)
+The user can choose among four models: a null model, where both survival and detection probability are constant, a model where survival varies through time, a model where detection probability varies through time, and a model where both survival and detection probability are a function of time. 
+
+In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes` on `wost_attempt` using the model where p varies with time:
+
+``` {r run JAGS, eval = FALSE}
+
+# Using default MCMC parameters (mcmc_params)
+
 wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, 
                                    visits = wost_attempts$visits,
-                                   model = "phi_time_p_time")
+                                   model = "p_time")
 
 ```
 
-``` {r wost_outcomes structure, eval = FALSE, echo = FALSE}
-str(wost_outcomes)
+```{r load JAGS results, echo = FALSE}
+
+data(wost_outcomes)
 
 ```
 
+We can now plot survival and detection probability through time at the population level, as well as daily survival estimated individually for each nest. Survival is constant through time as specified by the chosen model. As expected, detection probability decreases with time. 
 
-``` {r custom summary plots, eval = FALSE, echo = FALSE}
+``` {r custom summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 # Plot population-level daily survival
 plot_survival(wost_outcomes)
@@ -597,22 +624,56 @@ plot_nest_surv(wost_outcomes, who = 3)
 
 ````
 
+<br> 
 
-``` {r coda diagnostics, eval = FALSE, echo = FALSE}
+The last three plots inform us of the fate of the nesting attempts: two out of three appeared to have failed around day 60 and day 20, respectively, while the third was successful. 
 
-# Note that the JAGS estimation returns a list of mcarray objects. To use
-  # the coda diagnostic functions, you must us as.mcmc.list()
+Note that `estimate_outcomes` returns a list of `mcarray` objects.
+
+``` {r wost_outcomes structure}
+
+str(wost_outcomes)
+
+```
+
+The `coda` diagnostics are available after converting the output of `estimate_outcomes` into `mcmc.list`.
+
+``` {r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 wost_pb0_coda <- as.mcmc.list(wost_outcomes$p.b0)
 wost_pb1_coda <- as.mcmc.list(wost_outcomes$p.b1)
 
-#Summary plot
+# Summary plot
 plot(wost_pb0_coda)
 plot(wost_pb1_coda)
 
+```
+
+Finally, the function `summarize_outcomes` formats the output of the MCMC into a `data.frame` listing each nesting attempt, the probability that it was successful, and the day until which the nest survived.
+
+```{r summarize outcomes}
 
 ```
 
 ## Case studies: applying the method to different species and data
 
 Coming soon...
+
+```{r kestrels, eval = FALSE}
+
+data(kestrels)
+
+lk_output_1 <- find_nests(gps_data = kestrels,
+                    sea_start = "11-01",
+                    sea_end = "08-31",
+                    nest_cycle = 110,
+                    buffer = 40,
+                    min_pts = 2,
+                    min_d_fix = 5,
+                    min_consec = 2,
+                    min_top_att = 1,
+                    min_days_att = 1,
+                    discard_overlapping = FALSE)
+
+```
+

@@ -2,10 +2,21 @@
 % Please edit documentation in R/outcome_funs.R
 \name{plot_nest_surv}
 \alias{plot_nest_surv}
-\title{Plot latent survival for an individual nest}
+\title{Plot nest survival over time from MCMC run}
 \usage{
 plot_nest_surv(mcmc_obj, who = 1, ci = 0.95)
 }
+\arguments{
+\item{mcmc_obj}{List of \code{mcarrays} output by \code{estimate_outcomes}.}
+
+\item{who}{Integer. Which nesting attempt to plot.}
+
+\item{ci}{Numeric. Credible interval level.}
+}
+\value{
+A plot of individual nest survival over time.
+}
 \description{
-Blah
+\code{plot_nest_surv} makes a plot of nest survival over time for a chosen
+nesting attempt as estimated by \code{estimate_outcomes}.
 }

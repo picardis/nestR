@@ -6,6 +6,15 @@
 \usage{
 plot_survival(mcmc_obj, ci = 0.95)
 }
+\arguments{
+\item{mcmc_obj}{List of \code{mcarrays} output by \code{estimate_outcomes}.}
+
+\item{ci}{Numeric. Credible interval level.}
+}
+\value{
+A plot of nest survival over time.
+}
 \description{
-Blah
+\code{plot_survival} makes a plot of mean nest survival over time
+as estimated by \code{estimate_outcomes}.
 }
