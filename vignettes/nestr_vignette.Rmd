@@ -556,31 +556,19 @@ These two matrices will be used as input in the function that estimates the outc
 
 The function `estimate_outcomes` fits a Bayesian hierarchical model to the histories of nest revisitation and estimates the probability that each nest is still active (i.e., "alive") on the last day of the attempt. Under the hood, `estimate_outcomes` uses JAGS to run the MCMC. The user can control parameters of the MCMC by passing them to the argument `mcmc_params`. The model is specified using uninformative priors. 
 
-The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Specifically, the latent nest survival variable is modelled at the daily scale as a function of survival status at the previous time-step and daily survival probability:
+The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Specifically, the latent nest survival variable ($z_t$) is modelled at the daily scale as a function of survival status at the previous time-step ($z_{t-1}$) and daily survival probability ($\phi$):
 
-<br>
+$$z_t \sim Bern(z_{t-1} \times \phi_{t-1})$$
 
-$Z_t \sim Bern(Z_{t-1} \times \phi_{t-1})$
+Observed visits on a given day ($Y_t$) are modelled as a function of current nest survival status ($z_t$), probability of visit detection on that day ($p_t$), and number of GPS fixes available on that day ($N_t$): 
 
-<br>
-
-Observed visits are modelled as a function of current nest survival status, probability of visit detection, and number of GPS fixes available on that day: 
-
-<br>
-
-$Y_t \sim Binom(Z_t \times p_t, N_t)$
-
-<br>
+$$Y_t \sim Binom(z_t \times p_t, N_t)$$
 
 Where the probability of detection is:
 
-<br>
+$$p_t = Pr(visit\ detected | z_t = 1, N_t)$$
 
-$p_t = P(visit| Z_t = 1, N_t = n)$
-
-<br>
-
-Reproductive outcome is defined as the value of Z on day = `nest_cycle`. 
+Reproductive outcome is defined as the value of $z$ on day = `nest_cycle`. 
 
 The user can choose among four models: a null model, where both survival and detection probability are constant, a model where survival varies through time, a model where detection probability varies through time, and a model where both survival and detection probability are a function of time. 
 
@@ -628,7 +616,7 @@ plot_nest_surv(wost_outcomes, who = 3)
 
 The last three plots inform us of the fate of the nesting attempts: two out of three appeared to have failed around day 60 and day 20, respectively, while the third was successful. 
 
-Note that `estimate_outcomes` returns a list of `mcarray` objects.
+Note that `estimate_outcomes` returns a list of `mcarray` objects, along with the names of the bursts and the model structure that was chosen.
 
 ``` {r wost_outcomes structure}
 
@@ -652,6 +640,8 @@ plot(wost_pb1_coda)
 Finally, the function `summarize_outcomes` formats the output of the MCMC into a `data.frame` listing each nesting attempt, the probability that it was successful, and the day until which the nest survived.
 
 ```{r summarize outcomes}
+
+summarize_outcomes(wost_outcomes, ci = 0.95)
 
 ```
 

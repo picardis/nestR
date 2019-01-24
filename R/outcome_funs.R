@@ -105,6 +105,12 @@ estimate_outcomes <- function(fixes,
                        n.iter = mcmc_params$n_iter,
                        thin = mcmc_params$thin)
 
+  # Add the names to the list 'post'
+  post$names <- row.names(fixes)
+
+  # Add the model type
+  post$model <- model
+
   return(post)
 
 }
@@ -145,7 +151,7 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
                                       ymax = phi_upr),
                          fill = "cornflowerblue",
                          alpha = 0.5) +
-    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
           axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
           axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
@@ -191,7 +197,7 @@ plot_detection <- function(mcmc_obj, ci = 0.95){
                                       ymax = p_upr),
                          fill = "darkseagreen3",
                          alpha = 0.5) +
-    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
                    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
@@ -241,13 +247,114 @@ plot_nest_surv <- function(mcmc_obj, who = 1, ci = 0.95){
                                       ymax = z_upr),
                          fill = "cornflowerblue",
                          alpha = 0.5) +
-    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
                    axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
     ggplot2::ylab("Daily Survival (Z)") +
     ggplot2::xlab("Days") +
-    ggplot2::ggtitle(paste0("Survival of Nest", " (insert burst id here)"))
+    ggplot2::ggtitle(paste0("Survival of Nest ", mcmc_obj$names[who]))
 
 }
 
+
+#' Summary of outcomes from MCMC run
+#'
+#' \code{summarize_outcomes} blah blah
+#'
+#' @param mcmc_obj List of \code{mcarrays} output by \code{estimate_outcomes}.
+#' @param ci Numeric. Credible interval level.
+#'
+#' @return A list with the population level survival and detection parameters and the
+#' individual nest fates
+#'
+#' @export
+summarize_outcomes <- function(mcmc_obj, ci = 0.95){
+
+  # Initialize list for output
+  out <- list()
+
+  # Calculate the quantiles for the bounds of the credible interval
+  lwr <- 0 + (1 - ci)/2
+  upr <- 1 - (1 - ci)/2
+
+  ### Population-level survival
+
+  # If the model had time-varying phi, report the slope and intercept
+  if (grepl("phi_time", mcmc_obj$model)){
+
+    # Note that these parameters are on logit scale
+    out$phi <- data.frame(b0_lwr = apply(mcmc_obj$phi.b0, 1, quantile, lwr),
+                          b0_mean = apply(mcmc_obj$phi.b0, 1, mean),
+                          b0_upr = apply(mcmc_obj$phi.b0, 1, quantile, upr),
+                          b1_lwr = apply(mcmc_obj$phi.b1, 1, quantile, lwr),
+                          b1_mean = apply(mcmc_obj$phi.b1, 1, mean),
+                          b1_upr = apply(mcmc_obj$phi.b1, 1, quantile, upr))
+  } else {
+
+    # Note that these estimates are not on logit scale
+    out$phi <- data.frame(lwr = quantile(mcmc_obj$phi, lwr),
+                          mean = mean(mcmc_obj$phi),
+                          upr = quantile(mcmc_obj$phi, upr))
+    row.names(out$phi) <- NULL
+
+  }
+
+  ### Population-level detection
+
+  if (grepl("p_time", mcmc_obj$model)){
+
+    # Note that these parameters are on logit scale
+    out$p <- data.frame(b0_lwr = apply(mcmc_obj$p.b0, 1, quantile, lwr),
+                          b0_mean = apply(mcmc_obj$p.b0, 1, mean),
+                          b0_upr = apply(mcmc_obj$p.b0, 1, quantile, upr),
+                          b1_lwr = apply(mcmc_obj$p.b1, 1, quantile, lwr),
+                          b1_mean = apply(mcmc_obj$p.b1, 1, mean),
+                          b1_upr = apply(mcmc_obj$p.b1, 1, quantile, upr))
+  } else {
+
+    # Note that these estimates are not on logit scale
+    out$p <- data.frame(lwr = quantile(mcmc_obj$p, lwr),
+                        mean = mean(mcmc_obj$p),
+                        upr = quantile(mcmc_obj$p, upr))
+    row.names(out$p) <- NULL
+
+  }
+
+  ### Individual burst outcomes
+
+  # Get the latent survival variable
+  z <- wost_outcomes$z
+
+  # Get the burst names
+  bursts <- wost_outcomes$names
+
+  # Create data.frame of results
+  indiv <- data.frame(burst = bursts,
+                      pr_succ_lwr = NA,
+                      pr_succ_mean = NA,
+                      pr_succ_upr = NA,
+                      last_day_lwr = NA,
+                      last_day_mean = NA,
+                      last_day_upr = NA)
+
+  # Probability burst was a successful nest (survived to last day)
+  # Get the last day for each burst + iteration + chain
+  last_day <- apply(z, c(1, 3, 4), getElement, ncol(z))
+  # Get values for each burst
+  indiv$pr_succ_lwr <- apply(last_day, 1, quantile, lwr)
+  indiv$pr_succ_mean <- apply(last_day, 1, mean)
+  indiv$pr_succ_upr <- apply(last_day, 1, quantile, upr)
+
+  # Latest day that a nest survived to
+  latest_day <- apply(z, c(1, 3, 4), sum)
+  # Get values for each burst
+  indiv$last_day_lwr <- apply(latest_day, 1, quantile, lwr)
+  indiv$last_day_mean <- apply(latest_day, 1, mean)
+  indiv$last_day_upr <- apply(latest_day, 1, quantile, upr)
+
+  # Add to output list
+  out$burst <- indiv
+
+  return(out)
+}

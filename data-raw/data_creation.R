@@ -245,4 +245,4 @@ wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes,
                                    visits = wost_attempts$visits,
                                    model = "p_time")
 
-usethis::use_data(wost_outcomes)
+usethis::use_data(wost_outcomes, overwrite = TRUE)
