@@ -28,3 +28,11 @@ julian_to_date <- function(jd, yr) {
   return(dummy)
 }
 
+#' Dummy function for BJS to test git
+#'
+#' BJS wrote this function just to test git
+#'
+dummy <- function(){
+  print(1 + 1)
+}
+
