@@ -86,7 +86,7 @@ attempt_limits <- function(x, min_consec, nest_cycle){
   # Find the starting point of the moving window
   mw_start_check <- rl_df %>%
     filter(values) %>%
-    filter(lengths > min_consec)
+    filter(lengths >= min_consec)
 
   # If there are no durations > min_consec, return NAs for this group_id
   if(nrow(mw_start_check) == 0){
@@ -340,38 +340,43 @@ revisit_stats <- function(sub,
 #' @export
 choose_overlapping <- function(attempts) {
 
-  # Initialize field to mark attempts to keep
-  discard_df <- data.frame(loc_id = attempts$loc_id, keep = NA)
+  # Check if there is any attempt
+  if (length(attempts$loc_id) != 0) {
 
-  while(nrow(discard_df) > 0) {
+    # Initialize field to mark attempts to keep
+    discard_df <- data.frame(loc_id = attempts$loc_id, keep = NA)
 
-    discard_df$keep[1] <- TRUE
+    while(nrow(discard_df) > 0) {
 
-    current <- discard_df$loc_id[1]
-    current_start <- attempts %>%
-      filter(loc_id == current) %>%
-      pull(attempt_start)
-    current_end <- attempts %>%
-      filter(loc_id == current) %>%
-      pull(attempt_end)
+      discard_df$keep[1] <- TRUE
 
-    toss <- attempts %>%
-      filter((between(attempt_start, current_start, current_end) |
-                between(attempt_end, current_start, current_end)) &
-               loc_id != current) %>%
-      pull(loc_id)
+      current <- discard_df$loc_id[1]
+      current_start <- attempts %>%
+        filter(loc_id == current) %>%
+        pull(attempt_start)
+      current_end <- attempts %>%
+        filter(loc_id == current) %>%
+        pull(attempt_end)
 
-    attempts <- attempts %>%
-      filter(!(loc_id %in% toss))
+      toss <- attempts %>%
+        filter((between(attempt_start, current_start, current_end) |
+                  between(attempt_end, current_start, current_end)) &
+                 loc_id != current) %>%
+        pull(loc_id)
 
-    discard_df <- discard_df %>%
-      mutate(keep = case_when(
-        loc_id %in% toss ~ FALSE,
-        TRUE ~ keep
-      )) %>%
-      filter(is.na(keep))
+      attempts <- attempts %>%
+        filter(!(loc_id %in% toss))
+
+      discard_df <- discard_df %>%
+        mutate(keep = case_when(
+          loc_id %in% toss ~ FALSE,
+          TRUE ~ keep
+        )) %>%
+        filter(is.na(keep))
+    }
+
+    return(attempts)
+
   }
-
-  return(attempts)
 
 }

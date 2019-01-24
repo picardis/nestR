@@ -51,21 +51,52 @@ woodstorks <- rbind(wost_pt1, wost_pt2)
 
 # Create example dataset for Kestrels
 kestrels <- kestrels_raw %>%
-  filter(burst %in% c("16336-2016", "16339-2016")) %>%
+  filter(burst %in% c("16682-2017", "16680-2017")) %>%
   as.data.frame()
+
+# Successful attempts
+# 16334 - 45 days vis
+# 16336 - 44 days vis
+# 16351 - 45 days vis
+# 16363 - 40 days vis
+# 16371 - 36 days vis
+# 16375 - 30 days vis
+# 16520 - 44 days vis
+# 16527 - 33 days vis
+# 16550 - 42 days vis
+# 16558 - 40 days vis
+# 16588 - 40 days vis
+# 16680 - 47 days vis
+# 16685 - 34 days vis
+
+# Failed attempts
+# 16339 - 28 days vis
+# 16341 - 25 days vis
+# 16374 - 27 days vis
+# 16216 - 24 days vis
+# 16557 - 20 days vis
+# 16682 - 21 days vis
+# 16683 - 31 days vis
 
 # Create example dataset for Gulls
 gulls <- gulls_raw %>%
-  filter(burst %in% c("URI04-2016", "URI07-2016")) %>%
+  filter(burst %in% c("URI29-2016", "URI05-2016")) %>%
   as.data.frame()
+
+# URI06-2016 is a good girl but it looks like the tag might have failed
+# URI30-2016 crashes - not anymore with shorter season - 45 days visited
+# URI28-2016 crashes - still crashes
+# URI29-2016 crashes - not anymore with shorter season - 49 days visited
+# URI25-2016 crashes - not anymore with shorter season - 47 days visited
+# URI04-2016 crashes - not anymore with shorter season - 43 days visited
 
 # Save
 
 usethis::use_data(woodstorks, overwrite = TRUE)
-usethis::use_data(kestrels)
-usethis::use_data(gulls)
+usethis::use_data(kestrels, overwrite = TRUE)
+usethis::use_data(gulls, overwrite = TRUE)
 
-# Example outputs ----
+# Example outputs for WS ----
 
 wost_output_1 <- find_nests(gps_data = woodstorks,
                     sea_start = "11-01",
@@ -117,7 +148,7 @@ jax_known_nest <- data.frame(burst = "721290-2010",
 
 usethis::use_data(jax_known_nest, overwrite = TRUE)
 
-# Simulated dataset of 200 nests for CART illustration ----
+# Simulated dataset of 200 WS nests for CART illustration ----
 
 # Simulate data
 set.seed(1)
@@ -235,7 +266,7 @@ explodata_storks$perc_top_vis <- ifelse(explodata_storks$perc_top_vis > 100,
 
 usethis::use_data(explodata_storks)
 
-# WOST reproductive outcome data ----
+# WS reproductive outcome data ----
 
 wost_nests <- wost_output_2
 
@@ -246,3 +277,103 @@ wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes,
                                    model = "p_time")
 
 usethis::use_data(wost_outcomes, overwrite = TRUE)
+
+# Example outputs for LK ----
+
+lk_output_1 <- find_nests(gps_data = kestrels,
+                          sea_start = "03-31",
+                          sea_end = "08-31",
+                          nest_cycle = 35,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 15,
+                          min_consec = 2,
+                          min_top_att = 1,
+                          min_days_att = 1,
+                          discard_overlapping = FALSE)
+
+usethis::use_data(lk_output_1, overwrite = TRUE)
+
+lk_output_2 <- find_nests(gps_data = kestrels,
+                          sea_start = "03-31",
+                          sea_end = "08-31",
+                          nest_cycle = 35,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 15,
+                          min_consec = 6,
+                          min_top_att = 70,
+                          min_days_att = 65,
+                          discard_overlapping = TRUE)
+
+usethis::use_data(lk_output_2, overwrite = TRUE)
+
+# Known kestrel nests ----
+
+lk_known_nests <- data.frame(burst = c("16682-2017", "16680-2017"),
+                             long = c(16.416639, 16.552077),
+                             lat = c(40.817021, 40.828485))
+
+usethis::use_data(lk_known_nests, overwrite = TRUE)
+
+# LK reproductive outcome data ----
+
+lk_nests <- lk_output_2
+
+lk_attempts <- format_attempts(nest_info = lk_nests, nest_cycle = 35)
+
+lk_outcomes <- estimate_outcomes(fixes = lk_attempts$fixes,
+                                 visits = lk_attempts$visits,
+                                 model = "null")
+
+usethis::use_data(lk_outcomes, overwrite = TRUE)
+
+# Example outputs for MG ----
+
+mg_output_1 <- find_nests(gps_data = gulls,
+                          sea_start = "04-15",
+                          sea_end = "08-01",
+                          nest_cycle = 40,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 15,
+                          min_consec = 2,
+                          min_top_att = 1,
+                          min_days_att = 1,
+                          discard_overlapping = FALSE)
+
+usethis::use_data(mg_output_1, overwrite = TRUE)
+
+mg_output_2 <- find_nests(gps_data = gulls,
+                           sea_start = "04-15",
+                           sea_end = "08-01",
+                           nest_cycle = 40,
+                           buffer = 40,
+                           min_pts = 2,
+                           min_d_fix = 15,
+                           min_consec = 10,
+                           min_top_att = 80,
+                           min_days_att = 90,
+                           discard_overlapping = TRUE)
+
+usethis::use_data(mg_output_2, overwrite = TRUE)
+
+# Known gull nests ----
+
+mg_known_nests <- data.frame(burst = c("URI29-2016", "URI05-2016"),
+                             long = c(12.32471, 12.32471),
+                             lat = c(44.23803, 44.23803))
+
+usethis::use_data(mg_known_nests, overwrite = TRUE)
+
+# MG reproductive outcome data ----
+
+mg_nests <- mg_output_2
+
+mg_attempts <- format_attempts(nest_info = mg_nests, nest_cycle = 40)
+
+mg_outcomes <- estimate_outcomes(fixes = mg_attempts$fixes,
+                                 visits = mg_attempts$visits,
+                                 model = "p_time")
+
+usethis::use_data(mg_outcomes, overwrite = TRUE)

@@ -324,10 +324,10 @@ summarize_outcomes <- function(mcmc_obj, ci = 0.95){
   ### Individual burst outcomes
 
   # Get the latent survival variable
-  z <- wost_outcomes$z
+  z <- mcmc_obj$z
 
   # Get the burst names
-  bursts <- wost_outcomes$names
+  bursts <- mcmc_obj$names
 
   # Create data.frame of results
   indiv <- data.frame(burst = bursts,
