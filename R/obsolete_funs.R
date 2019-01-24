@@ -36,3 +36,10 @@ dummy <- function(){
   print(1 + 1)
 }
 
+#' Second dummy function for BJS to test git
+#'
+#' BJS wrote this function just to test git
+#'
+dummy2 <- function(){
+  print(2 + 2)
+}
