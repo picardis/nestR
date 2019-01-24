@@ -17,6 +17,9 @@ Depends:
     geosphere,
     rjags
 Imports: 
+    forcats,
+    rpart,
+    rpart.plot
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
