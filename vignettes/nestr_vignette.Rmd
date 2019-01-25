@@ -46,20 +46,20 @@ suppressWarnings({
 ## Introduction
 
 The `nestR` package provides functions to locate nesting attempts and estimate their outcome from bird GPS-tracking data. Being able to estimate reproductive outcome from GPS data bridges the gap between movement and fitness. 
-
+[](I wouldnt skimp on this section personally, make sure its understood what we're doing and the type of data we're looking. At the very least many vignettes will explore their data before moving forward, which we never really do, so this would encompass that)
 This vignette presents the workflow of the `nestR` package. The workflow can be conceptually divided in two parts: [first](#part1), the identification of nesting attempts along individual movement trajectories, and [second](#part2), the estimation of the outcome of nesting attempts. 
 
 For illustration purposes, this vignette uses example datasets on three bird species: wood storks (*Mycteria americana*), lesser kestrels (*Falco naumanni*), and mediterranean gulls (*Ichthyaetus melanocephalus*). Each dataset includes trajectories for two individual-years. All example datasets are available within the package. 
 
 ## Data format
-
+[](I dont know if you want to completely ignore adehabitats idea of burst, or state that its allowed, or quote that we're using the concept of burst from that)
 Functions in the `nestR` package require GPS data to be formatted as a  `data.frame` including four columns: 
 
 * `burst` - this is a unique identifier of each individual-year. We recommend the user split individual data into bursts on a date that does not overlap with nesting activities. The full breeding cycle of an individual on a given year needs to be contained within a single burst. 
 
 * `date` - this is a date-time object of class `POSIXct`. 
 
-* `long` and `lat` - the longitude and latitude of the locations.
+* `long` and `lat` - the longitude and latitude of the locations in decimal degrees
 
 Additional columns will not interfere with the functioning of the package, as long as these four fields are present and named with the terms above. 
 
@@ -85,7 +85,7 @@ str(woodstorks)
 ## Part I: Finding nest locations {#part1}
 
 ### Background 
-
+[](Wait are you putting the longer explanation introduction or background? Do we need both? The previous section seems to be a data set up stage.)
 When birds are nesting, they exhibit specific movement patterns that can allow us to identify the location of their nest. Specifically, birds perform repeated back-and-forth movements to and from their nest while they provide food for their nestlings and themselves. Repeatedly visited locations can be identified along movement trajectories, and patterns of revisitation can be used to determine whether a location that gets visited repeatedly is likely to be a nest. 
 
 The process of identifying nesting locations from GPS data relies on two components: knowledge of the biology of the study species and characteristics of the data at hand. Both of these aspects are fundamental in driving the patterns we observe in movement trajectories and require careful consideration by the user. 
@@ -129,7 +129,7 @@ kable(datasets_table) %>%
 Throughout this vignette, we will refer back to specific features of each dataset and illustrate how these can and need to be accounted for when using functions in the `nestR` package. 
 
 ### Introducing the `find_nests` function
-
+[](There needs to be a visual difference between the package name nestr and the function names. Either bold the function names or put the () within it, but I feel there could be some reading comprehension issue. Its minor but w/e)
 The central function for the first part of the `nestR` workflow is `find_nests`. This function identifies potential nests based on patterns of location revisitation. It takes as input the GPS data and returns any revisited locations that match a set of user-defined parameter values, along with their revisitation history. Input parameters can be conceptually organized in three groups:
 
 * Parameters related to basic information on the biology of the species;
@@ -147,7 +147,7 @@ The function `find_nests` will be used to tackle steps 1 and 3.
 To accomplish step 2, some information on the location of nests for a subset of the data is necessary. In an ideal situation, the user has access to prior information on the location of nests for some individual-years in the dataset. Otherwise, a viable alternative is for the user to identify "trusted nests"  among revisited locations through visual inspection, for example because they  fall within known nesting colonies. Both cases will be illustrated [later on](#step2).
 
 Here's the full list of arguments of the function `find_nests`:
-
+[](I think its worth mentioning somewhere what is required and what the default values are for each of these.)
 * `gps_data`
 * `sea_start`
 * `sea_end`
@@ -172,7 +172,7 @@ The next three arguments are related to data characteristics:
 
 * `buffer` defines the spatial scale at which revisitation patterns will be calculated. Returns to a location are defined as returns to a circular area of radius = `buffer` (in meters). The use of this parameter is meant to account for the spatial scattering of GPS points around a nest due to both behavior (sometimes the tag will happen to record a point when the bird was in the proximity of the nest, possibly arriving or departing, and not exactly on it) and GPS error. The value of `buffer` needs to be set to a number greater or equal to the spatial resolution of the GPS data. 
 
-* Revisitation stats will be computed on each area of size `buffer` that is visited multiple times. To speed up calculations, the user can discard isolated points from the get-go and not bother calculating revisitation stats on those. The parameter `min_pts` allows to specify a minimum number of points that need to fall within a point's buffer for it to be retained in the calculation of revisitation stats. 
+* Revisitation stats will be computed on each area of size `buffer` that is visited multiple times. To speed up calculations, the user can discard isolated points from the get-go and not bother calculating revisitation stats on those. The parameter `min_pts` allows the user to specify a minimum number of points that need to fall within a point's buffer for it to be retained in the calculation of revisitation stats. 
 
 * Some of the revisitation stats included in the output of `find_nests` are based on the number of consecutive days a location is visited. For tags that have a high failure rate and a relatively low temporal resolution, it is easy to miss a nest visit even though it happened. This can break an otherwise continuous stretch of days where visits were recorded. The argument `min_d_fix` allows the user to counteract the effect of missed visits, by setting a minimum number of fixes that need to be available in a day when no visit was detected for that day to be truly counted as non visited. In [the next section](#step1), we provide an example of when this is especially needed.
 
@@ -233,7 +233,7 @@ As a first step, we suggest using the `find_nests` function to screen the data t
 Here is an example with wood storks. Wood storks nest at different times of the year in different parts of their range, so the first challenge with this species is that there isn't a well-defined nesting season. For example, wood storks in southern Florida usually breed between January and May, but those that nest in some areas farther north can start as late as March or April. Overall, we cannot exclude the possibility of observing nesting events any time between November and August. Therefore, we set `sea_start` and `sea_end` to November 1st and August 31st, respectively. The time required for an individual wood stork to complete its nesting cycle is 110 days. We set `nest_cycle` to this value.
 
 The spatial accuracy of the GPS data for wood storks is 18 meters according to the tag user manual. We set the value of `buffer` to 40 meters to allow some  extra room for spatial scattering of points around a central location. In general, we found that buffer sizes between 20 and 50 meters return comparable results in our three case studies. We encourage the user to explore results obtained with different buffer sizes and possibly fine-tune the value to one that well captures the spatial scale of recursive movements given the species and data at hand. We set `min_pts` to 2 to avoid calculating revisitation patterns for points that are relatively isolated. This is still a very low, conservative value that nevertheless substantially helps reduce computation time.
-
+[](I think its important here to mention that this number is *currently* a guess, and is best made by playing with data or making a best guess. Maybe give a good rule of thumb?)
 We set `min_d_fix` to 5, meaning that any day with no visit does not get counted as interrupting an otherwise continuous stretch of consecutive days if the tag did not collect at least 5 fixes on that day. This is especially important for wood storks because the time interval between fixes is 1 hour, the tags are solar powered and therefore only take fixes during the daytime, and the failure rate is high. These factors combined mean that often there are only a handful of fixes collected on a day, and the probability of missing nest visits is high. If a stretch of consecutive days is interrupted by one or more days with no recorded visit but that only include 1 to 4 fixes, we do not have enough information to truly determine if the nest was not visited, and we assume that a visit was likely missed instead. As we will mention later, this is not as much of a  problem in the case of both kestrels and gulls, because those tags were set to collect data every 15 minutes and have a low failure rate, so that the  probability of missing visits to the nest is lower. 
 
 We set the three filtering arguments to low values, meaning that the constraints we enforce are as loose as they can be. We set `min_consec` to 2 days, and `min_top_att` and `min_days_att` to 1%. This will return any location that is visited for at least 2 consecutive days, regardless of how often it is visited between the first and last visit and regardless of how much is it visited for on the day with the most visits. We also set `discard_overlapping` to `FALSE` so that the function will not discard locations that are visited simultaneously to a likely nest. This will be useful for [Step 2](#step2). 
@@ -280,9 +280,10 @@ table(wost_output_1$nests$burst)
 Results are automatically sorted by `tot_vis` within each burst, so for each  individual the location that was visited the most is at the top of the list. 
 
 ### Step 2: Discriminating between nests and non-nests {#step2}
-
+[](I think this spot needs more information on why you care about nests vs nonnests. Like why are we going through this step. Well because we need to pick nests, so we need to know whats not a nest, to tweak parameters so we can pull out real nests and not non-nests. I know this is implied by smart people, but idk state it even if its just in two sentences. And then after state what youre going to do. We then will decide what are correct parameters via CART (or manually). So lay out the what and why here. Partly because this is a very dense document and the reader is going to need lots of guide posts along the way)
+[](Related you should lay out why theres two cases and that we're going to look at two cases that exemplify these possibilities.)
 The set of revisited locations obtained as output of the screening in [Step 1](#step1) likely includes both nests and non-nests. The objective of this section is to identify the best set of parameter values to discriminate between these. Specifically, the parameters that we want to tune are those that describe patterns of revisitation: `min_consec`, `min_top_att`, and `min_days_att`. To inform our choice of values for these parameters, we want to compare the values obtained in output for nests and non-nests for `consec_days`, `perc_top_vis`, and `perc_days_vis`.
-
+[Wait im confused, you laboriously wrote out all of that, just to tell us we can use a function. Which should we do? Should we go through this long thought experiment or use the function? This section is very long it infact fills up a whole screen with words. Im not sure I want to see your thought process unless you tell me why its relevant, should I have set parameters using your logic or this function? Guide the user dont use this part as a Lab Notebook]
 The function `get_explodata` automates the process of selecting nests and non-nests to compare. Given the output of `find_nests` and information on known nest locations, the function extracts the true nest and another location that is not a nest from the set of revisited locations. To illustrate how the function works, let's step through the process manually on the two individuals in the wood stork example dataset. 
 
 #### Case A: coordinates of true nest are known
@@ -391,7 +392,7 @@ knitr::include_graphics("img/nestR_img2.jpg")
 ```
 
 <br>
-
+[](I understand that one of these is infact done on the app and you just pasted over a star for the rookery, however the very different symbol styles make it look like the nest is not necessarily close to the rookery. The star, the middle implies the point, the ballon the tip implies the point, and when the star overlaps the ballon it looks off. I would change the star symbol or the apps default symbol, or do this manually and just fake it so the ballon is ontop of the star.)
 The function `get_explodata` allows the user to input information on true nests in an alternative way that works well in this case: instead of providing the nest coordinates by passing `known_coords` to the function, the user can provide the  location ID instead, by using the argument `known_ids`. We can thus run  `get_explodata` on wood stork 1134370-2013 by specifying the location ID of the point we trust to be a nest: 
 
 ```{r get explo stork 2}
@@ -409,7 +410,7 @@ id_known <- data.frame(burst = "1134370-2013",
 ```
 
 #### Find set of parameter values to tell apart nests and non-nests
-
+[](Wait we skipped the part where we pick non-nests and how you would do that. Instead you picked likely nests and said, WERE GOOD...'Now we have a data set with known nests and fake nest'. Maybe I missed the sentence where you told us you made this output)
 Once we have a dataset of nests and non-nests, we can compare values of revisitation parameters between those, and use that to inform the choice of  parameter values to filter nests among revisited locations. 
 
 Several possible approaches are available to tackle this objective. Here, we present one possible implementation, based on Classification and Regression  Trees (CART). Functions to run a customized CART algorithm on the revisited location data are available within `nestR`, but we encourage the user to explore other implementation options or other analytical tools that may also be  appropriate for the task.
@@ -525,7 +526,7 @@ wost_nests <- wost_output_2
 Nesting birds keep returning to their nest to feed their offspring until fledging. Histories of nest revisitation obtained from GPS data can be used to estimate the outcome of nesting attempts. Specifically, we can estimate if an attempt was successful or not according to whether it lasted as long as the duration of a complete nesting cycle for the species at hand. The underlying assumption is that the nest stops being revisited after an attempt fails, which is true for many bird species. 
 
 Two elements complicate the picture: first, GPS fixes are not recorded in real time, which means some visits to a nest may be missed. Second, nest attendance can vary throughout the nesting cycle as a function of developmental stage of the chicks, so that visits may become less frequent and/or shorter with time. This means that the probability of observing a nest visit in the GPS data, given that it happened, may decrease with time during the nesting attempt. 
-
+[](Again because this is a long laborious document I would put in guide posts and road signs. To estimate these parameters we will fit a bayesian model to blahf blahu blahc blahk. Here are bullet points! step 1. fit model, step 2. eat cake step 3. ??? step 4. profit.)
 Functions in `nestR` allow the estimation of reproductive outcome from GPS-derived nest revisitation histories while taking into account the probability of visit detection and allowing both detection and survival probability to vary in time. 
 
 ### Formatting data
@@ -559,7 +560,7 @@ These two matrices will be used as input in the function that estimates the outc
 ### Model specification
 
 The function `estimate_outcomes` fits a Bayesian hierarchical model to the histories of nest revisitation and estimates the probability that each nest is still active (i.e., "alive") on the last day of the attempt. Under the hood, `estimate_outcomes` uses JAGS to run the MCMC, via the package `rjags`. The user can control parameters of the MCMC by passing them to the argument `mcmc_params`.
-
+[](This fucking pleblian here doesnt necessarily know what MCMC stands for, so maybe write it out the first time)
 The model specification includes two processes: the survival process, which is not directly observable, and the observation process, which is the signal we get in the revisitation data. Much the same as in a Bayesian implementation of a Cormack-Jolly-Seber capture-mark-recapture model, the latent nest survival variable ($z_t$) is modelled at the daily scale as a function of survival status at the previous time-step ($z_{t-1}$) and daily survival probability ($\phi$):
 
 $$z_t \sim Bern(z_{t-1} \times \phi_{t-1})$$
@@ -679,7 +680,7 @@ plot(wost_pb1_coda)
 
 #### Lesser kestrels
 
-Lesser kestrels nest between mid-April and late-July in southern Italy. Their nesting cycle is approximately 65 days long from egg-laying to fledging. However, the kestrels in our dataset were tagged during the early chick-rearing phase. This means that we are missing the initial part of nesting attempts (from egg-laying to shortly after hatching, ~30 days). To account for this in our analysis, we subtract 30 days from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to the longest attempt duration that we expect to be able to observe in our data. To allow some room for variability in the onset of nesting, we constrain the nesting season between March 31st and August 31st. This temporal range will definitely include any nesting attempts in our study population. The GPS tags were programmed to collect a fix every 15 minutes, so we should bump up the value of `min_d_fix` to a higher value than we did for wood storks. We run a first screening with loose filtering constraints:
+Lesser kestrels nest between mid-April and late-July in southern Italy. Their nesting cycle is approximately 65 days long from egg-laying to fledging. However, the kestrels in our dataset were tagged during the early chick-rearing phase. This means that we are missing the initial part of nesting attempts (from egg-laying to shortly after hatching, ~30 days). To account for this in our analysis, we subtract 30 days from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to the longest attempt duration that we expect to be able to observe in our data. To allow some room for variability in the onset of nesting, we constrain the nesting season between March 31st and August 31st. This temporal range will confidently [](I changed this, because definitely doesnt sound very formal, but im not sure confidently is the right word either) include any nesting attempts in our study population. The GPS tags were programmed to collect a fix every 15 minutes, so we should bump up the value of `min_d_fix` to a higher value than we did for wood storks. We run a first screening with loose filtering constraints:
 
 ```{r kestrels, eval = FALSE}
 
@@ -729,7 +730,7 @@ data(lk_known_nests)
 
 ```
 
-In this simplified version of the workflow, with only two individuals, it is easy to just visually pick the best values to discriminate nests from non-nests. In general, manual tuning of filtering parameter values is viable and encouraged whenever there is good knowledge of the species' ecology and a clear behavioral signal is visible in the data. This can become challenging for very large datasets that are not easy to explore visually or in which there is much variability. In those situations, the user can use statistical tools to inform the choice of parameter values and has to be willing to accept some degree of error. On the other hand, using large amounts of data to inform the choice of parameter values will likely help with generalization, and it will improve our ability to find nests in trajectories for which no prior information is available (species and data characteristics being equal).
+In this simplified version of the workflow, with only two individuals, it is easy to visually pick the best values to discriminate nests from non-nests. In general, manual tuning of filtering parameter values is viable and encouraged whenever there is good knowledge of the species' ecology and a clear behavioral signal is visible in the data. This can become challenging for very large datasets that are not easy to explore visually or in which there is much variability. In those situations, the user can use statistical tools to inform the choice of parameter values and has to be willing to accept some degree of error. On the other hand, using large amounts of data to inform the choice of parameter values will likely help with generalization, and it will improve our ability to find nests in trajectories for which no prior information is available (species and data characteristics being equal).
 
 ```{r kestrels find nests, eval = FALSE}
 
@@ -804,7 +805,7 @@ gridExtra::grid.arrange(plot_nest_surv(lk_outcomes, who = 1),
 
 ````
 <br>
-
+[](wait so the detection probability is basically 0 in this species. That either isnt right or makes the analysis on the species extremely dubious. Would this be more reliable with larger datasets? Doesnt that imply we should be giving this survival portion a large dataset?)
 According to the model, kestrel 16680-2017 was successful, while kestrel 16682-2017 failed at around 19 days (plus the 30 days we subtracted, therefore at approximately 50 days into the actual attempt). 
 
 ```{r kestrel summarize outcomes}
@@ -815,7 +816,7 @@ summarize_outcomes(lk_outcomes, ci = 0.95)
 
 #### Mediterranean gulls
 
-Mediterranean gulls nest between mid-April and late-July in Italy. Similarly to lesser kestrels, their nesting cycle is approximately 60 days long from egg-laying to fledging. However, the gulls in our dataset were tagged during incubation. This means that we are missing the initial part of nesting attempts (from egg-laying to early incubation, approximately 20 days). Like we did for kestrels, we subtract the duration of the missing part from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to 40 days. Probably because the 15-minute time resolution and the low failure rate make the individual datasets very large, we easily incurred in memory issues when running `find_nests` on this dataset. To counteract this issue, we reduce the number of points used to compute the distance matrix by using strict temporal limits for the nesting season (April 15th to August 1st). Next time we will buy a computer with more RAM. We run the first screening with loose filtering constraints:
+Mediterranean gulls nest between mid-April and late-July in Italy. Similarly to lesser kestrels, their nesting cycle is approximately 60 days long from egg-laying to fledging. However, the gulls in our dataset were tagged during incubation. This means that we are missing the initial part of nesting attempts (from egg-laying to early incubation, approximately 20 days). Like we did for kestrels, we subtract the duration of the missing part from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to 40 days. Probably because the 15-minute time resolution and the low failure rate make the individual datasets very large, we easily incurred in memory issues when running `find_nests` on this dataset. To counteract this issue, we reduce the number of points used to compute the distance matrix by using strict temporal limits for the nesting season (April 15th to August 1st). [](Im assuming you left this comment about more RAM in as a joke to yourself you meant to delete, however, you could mention that its RAM driven if you want to work with larger datasets that wont run, or to resample using adehabitat) We run the first screening with loose filtering constraints:
 
 ```{r gulls, eval = FALSE}
 
