@@ -180,7 +180,7 @@ The remaining arguments are used for filtering locations based on revisitation p
 
 * Revisitation patterns include the number of consecutive days a location is visited, the percent of fixes at the location on the day with maximum attendance, and the percent of days a location is visited between the first and last visit. The user can set minimum values for each of these using `min_consec`, `min_top_att`, and `min_days_att`, respectively. Any location for which revisitation patterns do not exceed these user-defined thresholds will not be returned. Prior information regarding these parameters is likely not available to the user, and finding the best set of values to specify for these arguments will be the focus of [Step 2](#step2). 
 
-* Finally, `discard_overlapping` specifies whether the function should return all the revisited locations that  match the specified criteria, or avoid returning locations for which the time ranges of revisits are overlapping. Assuming that a bird cannot nest in two places at the same time, if `discard_overlapping` is set to `TRUE`, only the most likely nest location is return among temporally overlapping ones. However, we will later illustrate the case where it is useful to set this argument to `FALSE` instead.
+* Finally, `discard_overlapping` specifies whether the function should return all the revisited locations that  match the specified criteria, or avoid returning locations for which the time ranges of revisits are overlapping. Assuming that a bird cannot nest in two places at the same time, if `discard_overlapping` is set to `TRUE`, only the most likely nest location is returned among temporally overlapping ones. However, we will later illustrate the case where it is useful to set this argument to `FALSE` instead.
 
 The output of `find_nests` is a list with two elements: `nests` and `visits`. The first element, `nests`, is a `data.frame` including any revisited locations that match the criteria specified in the function arguments, along with their revisitation stats. For example:
 
@@ -210,7 +210,7 @@ Each row of the `data.frame` corresponds to one revisited location. The columns 
 
 Note the direct correspondence between the last three parameters and the three filtering arguments in input (`min_consec`, `perc_days_vis`, and `perc_top_vis`). 
 
-The days of first and last visit do not necessarily correspond to the start and end of a nesting attempt. If a bird visits the nest location before actually starting to nest, or returns to the nest after having completed the attempt, using the days of first and last visits as temporal limits of the attempt is going to be misleading. Since estimating the start and end dates of an attempt correctly will be critical for successfully estimating its outcome, `find_nests` takes into account the possibility of visits outside of the attempt and cuts them out. The implementation is based on the value of `min_consec`: the attempt is estimated to start at the first occurrence of a strike of consecutive days at least as long as `min_consec`. Then, if the nest was visited for longer than the duration of a complete nesting attempt after that, the end date gets set at `attempt_start` + `nest_cycle` (that is, the latest date possible given the start date). If the last visit occurs before `attempt_start` + `nest_cycle`, then `attempt_end` is set to `last_date`. We stress the importance of being aware that the value of `min_consec` has an effect on the estimation of the temporal limits of nesting attempts.
+The days of first and last visit do not necessarily correspond to the start and end of a nesting attempt. If a bird visits the nest location before actually starting to nest, or returns to the nest after having completed the attempt, using the days of first and last visits as temporal limits of the attempt is going to be misleading. Since estimating the start and end dates of an attempt correctly will be critical for successfully estimating its outcome, `find_nests` takes into account the possibility of visits outside of the attempt and cuts them out. The implementation is based on the value of `min_consec`: the attempt is estimated to start at the first occurrence of a stretch of consecutive days at least as long as `min_consec`. Then, if the nest was visited for longer than the duration of a complete nesting attempt after that, the end date gets set at `attempt_start` + `nest_cycle` (that is, the latest date possible given the start date). If the last visit occurs before `attempt_start` + `nest_cycle`, then `attempt_end` is set to `last_date`. We stress the importance of being aware that the value of `min_consec` has an effect on the estimation of the temporal limits of nesting attempts.
 
 The second element of the list that `find_nests` returns as output is a `data.frame` named `visits`: this is essentially an updated version of the GPS data provided in input, with an additional column that flags any records taken at a nest with the location ID of that nest. Locations away from the nest are assigned zeroes. Therefore, `visits` contains the revisitation history of all nests listed in `nests`. This is what it looks like:
 
@@ -338,7 +338,7 @@ The function `get_explodata` automates the process we described so far. It takes
 1. The true nest location is not in the output. This can happen if, for example, gaps in the data due to tag malfunctioning led to missing most of the visits to  the nest. 
 1. Multiple locations surrounding the nest were selected as candidate nests, and the closest one to the nest in terms of linear distance is not the one with the highest revisitation parameters. 
 
-Selecting the true nest as simply the closest location to the known nest is  prone to both of these error sources. The argument `buffer` in the function `get_explodata` help solve both of these issues. The function selects the  true nest as the top visited location among those that fall within a `buffer` distance from the known nest. If there is none, nothing is returned. If multiple locations are available within the buffer, the most visited one, not the closest one, gets selected. If the coordinates in `known_coords` represent the actual location of the nest, we recommend setting `buffer` in `get_explodata` to the same value used for the argument `buffer` in `find_nests`. In cases where, for example, a single pair of coordinates is available for an entire colony rather than for the exact location of a nest within it, the value of `buffer` can be increased to match the spatial extent of the colony to ensure the true nest does not fall outside of the buffer.
+Selecting the true nest as simply the closest location to the known nest is  prone to both of these error sources. The argument `buffer` in the function `get_explodata` helps solve both of these issues. The function selects the  true nest as the top visited location among those that fall within a `buffer` distance from the known nest. If there is none, nothing is returned. If multiple locations are available within the buffer, the most visited one, not the closest one, gets selected. If the coordinates in `known_coords` represent the actual location of the nest, we recommend setting `buffer` in `get_explodata` to the same value used for the argument `buffer` in `find_nests`. In cases where, for example, a single pair of coordinates is available for an entire colony rather than for the exact location of a nest within it, the value of `buffer` can be increased to match the spatial extent of the colony to ensure the true nest does not fall outside of the buffer.
 
 Here is the output of `get_explodata` for the Jacksonville stork:
 
@@ -576,10 +576,10 @@ Reproductive outcome is defined as the probability that value of $z_{nest\_cycle
 
 The user can choose among four models: 
 
-1. `null` a null model, where both survival and detection probability are constant, 
-1. `phi_time` a model where survival varies through time,
-1. `p_time` a model where detection probability varies through time, and 
-1. `phi_time_p_time` a model where both survival and detection probability are a function of time. 
+* `null` a null model, where both survival and detection probability are constant, 
+* `phi_time` a model where survival varies through time,
+* `p_time` a model where detection probability varies through time, and 
+* `phi_time_p_time` a model where both survival and detection probability are a function of time. 
 
 In all four models, the parameters $\phi$ and $p$ are modeled using a binomial GLM as a function of the day of the attempt, $t$, i.e.:
 
@@ -595,7 +595,7 @@ Notice that we assume that daily survival ($\phi$) and detection ($p$) are the s
 
 ### Wood stork example
 
-In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes` on `wost_attempt` using the model where p varies with time:
+In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes` on `wost_attempt` using the model where $p$ varies with time:
 
 ``` {r run JAGS, eval = FALSE}
 
@@ -623,6 +623,8 @@ plot_survival(wost_outcomes)
 # Plot population-level detection
 plot_detection(wost_outcomes)
 ```
+
+<br>
 
 The MCMC algorithm also monitors the $z_t$ for all bursts, so we are able to specifically visualize the survival status for each nest.
 
@@ -801,6 +803,7 @@ gridExtra::grid.arrange(plot_nest_surv(lk_outcomes, who = 1),
                         ncol = 2)
 
 ````
+<br>
 
 According to the model, kestrel 16680-2017 was successful, while kestrel 16682-2017 failed at around 19 days (plus the 30 days we subtracted, therefore at approximately 50 days into the actual attempt). 
 
@@ -846,12 +849,6 @@ mg_output_1$nests %>% filter(burst == "URI05-2016") %>% head()
 And here is the output for the second gull: 
 
 ```{r gulls other burst}
-
-mg_output_1$nests %>% filter(burst == "URI29-2016") %>% head()
-
-```
-
-```{r gulls other burst for real}
 
 mg_output_1$nests %>% filter(burst == "URI29-2016") %>% head()
 
@@ -943,6 +940,8 @@ gridExtra::grid.arrange(plot_nest_surv(mg_outcomes, who = 1),
                         ncol = 2)
 
 ````
+
+<br>
 
 The estimation of reproductive outcome matches our prior information. Gull URI29-2016 successfully completed its nesting attempt, while gull URI05-2016 failed at 11 days (plus the 20 days that we are missing, therefore at about 30 days from the start of the attempt). 
 
