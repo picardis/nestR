@@ -620,6 +620,7 @@ Nesting birds keep returning to their nest to feed their offspring until fledgin
 Two elements complicate the picture: first, GPS fixes are not recorded in real time, which means some visits to a nest may be missed. Second, nest attendance can vary throughout the nesting cycle as a function of developmental stage of the chicks, so that visits may become less frequent and/or shorter with time. This means that the probability of observing a nest visit in the GPS data, given that it happened, may decrease with time during the nesting attempt. 
 
 Functions in `nestR` allow the estimation of reproductive outcome from GPS-derived nest revisitation histories while taking into account the probability of visit detection and allowing both detection and survival probability to vary in time. 
+<!-- MB: Survival of what? Chicks? Be sure to be explicit. -->
 
 ### Formatting data
 
@@ -648,6 +649,7 @@ dim(wost_attempts$visits)
 ```
 
 These two matrices will be used as input in the function that estimates the outcome of nesting attempts. 
+<!-- MB: Seems unnecessary… Should be done under the hood. Again, the use of dedicated classes in Part I would help. -->
 
 ### Model specification
 
@@ -688,9 +690,10 @@ Notice that we assume that daily survival ($\phi$) and detection ($p$) are the s
 
 ### Wood stork example
 
-In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes` on `wost_attempt` using the model where $p$ varies with time:
+In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with $p$ varying through time is appropriate in the case of wood storks. We run `estimate_outcomes` on `wost_attempt` using the model where $p$ varies with time:
+<!-- MB: Maybe add references here. -->
 
-``` {r run JAGS, eval = FALSE}
+```{r run JAGS, eval = FALSE}
 
 # Using default MCMC parameters (mcmc_params)
 
@@ -699,16 +702,19 @@ wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes,
                                    model = "p_time")
 
 ```
+<!-- MB: I did not run it. How long is it? -->
 
 ```{r load JAGS results, echo = FALSE}
 
 data(wost_outcomes)
 
 ```
+<!-- MB: Same here for the data object. -->
+<!-- MB: You need to explain what the output is. -->
 
 We can now plot survival and detection probability through time at the population level, as well as daily survival estimated individually for each nest. Survival is constant through time as specified by the chosen model. As expected, detection probability decreases with time. 
 
-``` {r custom population summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+```{r custom population summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 # Plot population-level daily survival
 plot_survival(wost_outcomes)
@@ -716,12 +722,13 @@ plot_survival(wost_outcomes)
 # Plot population-level detection
 plot_detection(wost_outcomes)
 ```
+<!-- MB: Same here: will need classes to be usable. -->
 
 <br>
 
 The MCMC algorithm also monitors the $z_t$ for all bursts, so we are able to specifically visualize the survival status for each nest.
 
-``` {r custom burst summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+```{r custom burst summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 # Plot estimated survival for burst 1
 plot_nest_surv(wost_outcomes, who = 1)
@@ -733,11 +740,12 @@ plot_nest_surv(wost_outcomes, who = 2)
 plot_nest_surv(wost_outcomes, who = 3)
 
 
-````
+```
 
 <br> 
 
 The last three plots inform us of the fate of the nesting attempts: two out of three appeared to have failed on day 60 and day 23, respectively, while the third was successful. 
+<!-- MB: Day 60/23 since the beginning of the nesting attempt, right? It would be nice to have it plot on actual yearly time scale (doable again with classes and arguments). -->
 
 Finally, the function `summarize_outcomes` formats the output of the MCMC into a `data.frame` listing each nesting attempt, the probability that it was successful, and the day until which the nest survived.
 
@@ -746,10 +754,12 @@ Finally, the function `summarize_outcomes` formats the output of the MCMC into a
 summarize_outcomes(wost_outcomes, ci = 0.95)
 
 ```
+<!-- MB: This is not a data.frame, but a list. Only the third element is… -->
 
 Remember that `estimate_outcomes` uses the functions from the package `rjags` under the hood. This gives the user the option of accessing the MCMC diagnostics from the `coda` package. The function `estimate_outcomes` returns a list of `mcarray` objects, along with the names of the bursts and the model structure that was chosen.
+<!-- MB: Mmmmmh… Needs to come before! -->
 
-``` {r wost_outcomes structure}
+```{r wost_outcomes structure}
 
 str(wost_outcomes)
 
@@ -757,7 +767,7 @@ str(wost_outcomes)
 
 The `coda` diagnostics are available after converting the output of `estimate_outcomes` into `mcmc.list`. For example, if you wanted to look at the diagnostic plots for the $\beta$ parameters on detection ($p$):
 
-``` {r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+```{r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 wost_pb0_coda <- as.mcmc.list(wost_outcomes$p.b0)
 wost_pb1_coda <- as.mcmc.list(wost_outcomes$p.b1)
@@ -766,6 +776,7 @@ plot(wost_pb0_coda)
 plot(wost_pb1_coda)
 
 ```
+<!-- MB: You could use one-liners here, instead of creating new objects. -->
 
 
 ## Case studies: applying the method to different species and data
@@ -869,7 +880,7 @@ lk_attempts <- format_attempts(nest_info = lk_nests, nest_cycle = 35)
 
 We can now run the nest survival model. We do not expect visit detection probability to change with time, because the frequency of visits should not vary much after the early chick-rearing phase. 
 
-``` {r kestrel run JAGS, eval = FALSE}
+```{r kestrel run JAGS, eval = FALSE}
 
 lk_outcomes <- estimate_outcomes(fixes = lk_attempts$fixes, 
                                  visits = lk_attempts$visits,
@@ -885,7 +896,7 @@ data(lk_outcomes)
 
 Here are the summary plots for survival and detection probability at the population level, as well as the outcome of the two nesting attempts in the dataset:
 
-``` {r kestrel summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+```{r kestrel summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 gridExtra::grid.arrange(plot_survival(lk_outcomes), 
                         plot_detection(lk_outcomes), 
@@ -1006,7 +1017,7 @@ mg_attempts <- format_attempts(nest_info = mg_nests, nest_cycle = 40)
 
 Part of the incubation phase was still captured in the data, so we do expect the detection probability to vary through time in this case. We pick the model with time-varying $p$:
 
-``` {r gull run JAGS, eval = FALSE}
+```{r gull run JAGS, eval = FALSE}
 
 mg_outcomes <- estimate_outcomes(fixes = mg_attempts$fixes, 
                                  visits = mg_attempts$visits,
@@ -1022,7 +1033,7 @@ data(mg_outcomes)
 
 Let's take a look at the summary plots:
 
-``` {r gull summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+```{r gull summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 gridExtra::grid.arrange(plot_survival(mg_outcomes), 
                         plot_detection(mg_outcomes), 
