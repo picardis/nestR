@@ -566,6 +566,7 @@ data(wost_output_2)
 wost_output_2$nests
 
 ```
+<!-- You could just have the `data(wost_output_2)` line not echo-ed first. That would be easier to read. -->
 
 Good news! The function identified the known nest correctly for both burst 1134370-2013 and 721290-2010. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after leaving Rookery Branch, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second time there. 
 <!-- MB: Would be nice to be able to directly visualize it with e.g. `explore_nests`. -->
@@ -755,6 +756,7 @@ summarize_outcomes(wost_outcomes, ci = 0.95)
 
 ```
 <!-- MB: This is not a data.frame, but a list. Only the third element is… -->
+<!-- MB: Also, a nice summary function with a class would be super nice. -->
 
 Remember that `estimate_outcomes` uses the functions from the package `rjags` under the hood. This gives the user the option of accessing the MCMC diagnostics from the `coda` package. The function `estimate_outcomes` returns a list of `mcarray` objects, along with the names of the bursts and the model structure that was chosen.
 <!-- MB: Mmmmmh… Needs to come before! -->
@@ -781,9 +783,10 @@ plot(wost_pb1_coda)
 
 ## Case studies: applying the method to different species and data
 
-#### Lesser kestrels
+### Lesser kestrels
 
 Lesser kestrels nest between mid-April and late-July in southern Italy. Their nesting cycle is approximately 65 days long from egg-laying to fledging. However, the kestrels in our dataset were tagged during the early chick-rearing phase. This means that we are missing the initial part of nesting attempts (from egg-laying to shortly after hatching, ~30 days). To account for this in our analysis, we subtract 30 days from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to the longest attempt duration that we expect to be able to observe in our data. To allow some room for variability in the onset of nesting, we constrain the nesting season between March 31st and August 31st. This temporal range will definitely include any nesting attempts in our study population. The GPS tags were programmed to collect a fix every 15 minutes, so we should bump up the value of `min_d_fix` to a higher value than we did for wood storks. We run a first screening with loose filtering constraints:
+<!-- MB: Can you clarify: Where the birds captured on their nest? If yes, discuss briefly the implications; if not, still say it so we can move on without questions. -->
 
 ```{r kestrels, eval = FALSE}
 
@@ -811,6 +814,7 @@ data(lk_output_1)
 lk_output_1$nests %>% filter(burst == "16680-2017") %>% head()
 
 ```
+<!-- MB: Same commemts for data of course… -->
 
 Here are the results for the second kestrel:
 
@@ -867,6 +871,7 @@ The output accurately reflects our prior data on nest locations for the two kest
 lk_nests <- lk_output_2
 
 ```
+<!-- MB: But why??? No need to store the same object again… -->
 
 The kestrel colonies were periodically revisited after tagging to keep track of the progress of nesting attempts. This means that we can compare the output of the model with the data we have and verfiy that the estimation of reproductive outcome was correct. 
 
@@ -906,7 +911,9 @@ gridExtra::grid.arrange(plot_nest_surv(lk_outcomes, who = 1),
                         plot_nest_surv(lk_outcomes, who = 2), 
                         ncol = 2)
 
-````
+```
+<!-- MB: is gridExtra also part of the dependencies? -->
+
 <br>
 
 According to the model, kestrel 16680-2017 was successful, while kestrel 16682-2017 failed at around 19 days (plus the 30 days we subtracted, therefore at approximately 50 days into the actual attempt). 
@@ -917,9 +924,11 @@ summarize_outcomes(lk_outcomes, ci = 0.95)
 
 ```
 
-#### Mediterranean gulls
+### Mediterranean gulls
 
-Mediterranean gulls nest between mid-April and late-July in Italy. Similarly to lesser kestrels, their nesting cycle is approximately 60 days long from egg-laying to fledging. However, the gulls in our dataset were tagged during incubation. This means that we are missing the initial part of nesting attempts (from egg-laying to early incubation, approximately 20 days). Like we did for kestrels, we subtract the duration of the missing part from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to 40 days. Probably because the 15-minute time resolution and the low failure rate make the individual datasets very large, we easily incurred in memory issues when running `find_nests` on this dataset. To counteract this issue, we reduce the number of points used to compute the distance matrix by using strict temporal limits for the nesting season (April 15th to August 1st). Next time we will buy a computer with more RAM. We run the first screening with loose filtering constraints:
+Mediterranean gulls nest between mid-April and late-July in Italy. Similarly to lesser kestrels, their nesting cycle is approximately 60 days long from egg-laying to fledging. However, the gulls in our dataset were tagged during incubation. This means that we are missing the initial part of nesting attempts (from egg-laying to early incubation, approximately 20 days). Like we did for kestrels, we subtract the duration of the missing part from the actual duration of a full-length nesting attempt, and set the value of `nest_cycle` to 40 days. Probably because the 15-minute time resolution and the low failure rate make the individual datasets very large, we easily incurred memory issues when running `find_nests` on this dataset. To counteract this issue, we reduce the number of points used to compute the distance matrix by using strict temporal limits for the nesting season (April 15th to August 1st). Next time we will buy a computer with more RAM. <!-- MB: Or you can use the server… Sigh… -->
+<!-- MB: It would be better to actually discuss computing limits of this approach, and what other options are available. -->
+We run the first screening with loose filtering constraints:
 
 ```{r gulls, eval = FALSE}
 
@@ -942,6 +951,7 @@ mg_output_1$nests %>% filter(burst == "URI05-2016") %>% head()
 ```
 
 Here is the output for the first gull: 
+<!-- MB: This text needs to come before the last line of code above. -->
 
 ```{r gulls load output 1, echo = FALSE}
 
@@ -1004,6 +1014,7 @@ The output includes both the correct nesting locations.
 mg_nests <- mg_output_2
 
 ```
+<!-- MB: Arghhhhh!!! -->
 
 Let's proceed with the estimation of reproductive outcome. Like for kestrels, we have information on the outcome of these two nesting attempts for Mediterranean gulls, and we will be able to verify our results. 
 
