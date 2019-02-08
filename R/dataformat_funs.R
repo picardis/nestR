@@ -64,7 +64,8 @@ format_attempts <- function(nest_info,
     att <- attempts[i,]
 
     # Data on nest revisits
-    visits <- nest_info$visits
+    visits <- nest_info$visits %>%
+      filter(burst == att$burst)
 
     # Cut between attempt start and end of nesting cycle
     visits <- visits %>%

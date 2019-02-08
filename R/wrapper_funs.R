@@ -180,7 +180,10 @@ find_nests <- function(gps_data,
       select(loc_id, everything())
 
     # Handle dates
-    dat <- date_handler(dat, sea_start, sea_end)
+    dates_out <- date_handler(dat, sea_start, sea_end)
+
+    # dates_out is a list; pull the data from it
+    dat <- dates_out$dat
 
     # Handle cases where there are no data within the nesting season
     if (nrow(dat) == 0) {
@@ -270,8 +273,8 @@ find_nests <- function(gps_data,
              perc_days_vis >= min_days_att,
              perc_top_vis >= min_top_att) %>%
       left_join(select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-      mutate(attempt_start = ymd(paste0(min(lubridate::year(sub$date)), sea_start)) + attempt_start) %>%
-      mutate(attempt_end = ymd(paste0(min(lubridate::year(sub$date)), sea_start)) + attempt_end) %>%
+      mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
+      mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
       mutate(burst = burst_id) %>%
       select(burst,
              loc_id = group_id,

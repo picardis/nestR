@@ -117,12 +117,12 @@ get_explodata <- function(candidate_nests,
       nests[[i]] <- nests[[i]] %>%
         select(-dist_from_known)
 
-      # Subset the rest
-      rest <- sub %>%
-        filter(loc_id != nests[[i]]$loc_id)
-
       # If the true nest was found, select a non-nest too
       if (nrow(nests[[i]]) > 0) {
+
+        # Subset the rest
+        rest <- sub %>%
+          filter(loc_id != nests[[i]]$loc_id)
 
         # If pick_overlapping == TRUE, pick non-nest among those that
         # temporally overlap with the true one

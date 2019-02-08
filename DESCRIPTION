@@ -15,7 +15,10 @@ Depends:
     lubridate,
     data.table,
     geosphere,
-    rjags
+    rjags,
+    shiny,
+    shinydashboard,
+    leaflet
 Imports: 
     forcats,
     rpart,
@@ -23,8 +26,5 @@ Imports:
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
-    rmarkdown,
-    shiny,
-    shinydashboard,
-    leaflet
+    rmarkdown
 VignetteBuilder: knitr

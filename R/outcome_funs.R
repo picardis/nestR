@@ -354,7 +354,7 @@ summarize_outcomes <- function(mcmc_obj, ci = 0.95){
   indiv$last_day_upr <- apply(latest_day, 1, quantile, upr)
 
   # Add to output list
-  out$burst <- indiv
+  out$outcomes <- indiv
 
   return(out)
 }

@@ -65,7 +65,9 @@ date_handler <- function(dat, sea_start, sea_end) {
   dat <- dat %>%
     filter(date >= start_dummy & date <= end_dummy)
 
-  # Return the data
-  return(dat)
+  # Return the data and the actual season start and end
+  return(list(dat = dat,
+              actual_start = start_dummy,
+              actual_end = end_dummy))
 
 }
