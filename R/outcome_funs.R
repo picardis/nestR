@@ -149,8 +149,10 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = phi_lwr,
                                       ymax = phi_upr),
-                         fill = "cornflowerblue",
-                         alpha = 0.5) +
+                         fill = viridis::viridis(n = 1,
+                                                 alpha = 0.5,
+                                                 begin = 0.5,
+                                                 end = 0.5)) +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
           axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
@@ -195,8 +197,10 @@ plot_detection <- function(mcmc_obj, ci = 0.95){
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = p_lwr,
                                       ymax = p_upr),
-                         fill = "darkseagreen3",
-                         alpha = 0.5) +
+                         fill = viridis::viridis(n = 1,
+                                                 alpha = 0.5,
+                                                 begin = 0.2,
+                                                 end = 0.2)) +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
@@ -245,8 +249,10 @@ plot_nest_surv <- function(mcmc_obj, who = 1, ci = 0.95){
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = z_lwr,
                                       ymax = z_upr),
-                         fill = "cornflowerblue",
-                         alpha = 0.5) +
+                         fill = viridis::viridis(n = 1,
+                                                 alpha = 0.5,
+                                                 begin = 0.8,
+                                                 end = 0.8)) +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),

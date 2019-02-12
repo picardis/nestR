@@ -280,7 +280,11 @@ discriminate_nests <- function(explodata, train_frac) {
 
   # Transform flag (nest? y/n) to factor
   explodata <- explodata %>%
-    mutate(nest = forcats::fct_relevel(as.factor(nest), "no", "yes"))
+    mutate(nest = forcats::fct_relevel(as.factor(nest), "no", "yes")) %>%
+    select(nest,
+           "Consecutive_days" = consec_days,
+           "Percent_days_visited" = perc_days_vis,
+           "Percent_top_attendance" = perc_top_vis)
 
   # Training dataset
   train_data <- explodata %>%
@@ -291,7 +295,7 @@ discriminate_nests <- function(explodata, train_frac) {
   suppressMessages(test_data <- anti_join(explodata, train_data))
 
   # Specify model
-  model <- "nest ~ consec_days + perc_days_vis + perc_top_vis"
+  model <- "nest ~ Consecutive_days + Percent_days_visited + Percent_top_attendance"
 
   # Run CART
   cart <- rpart::rpart(model,
@@ -314,7 +318,8 @@ discriminate_nests <- function(explodata, train_frac) {
   pruned_cart <- rpart::prune(cart, cp = cp)
 
   # Plot pruned tree
-  rpart.plot::rpart.plot(pruned_cart, type=4, extra=1)
+  rpart.plot::rpart.plot(pruned_cart, type=4, extra=1,
+                         box.palette = "Gn")
 
   if (train_frac < 1) {
 
