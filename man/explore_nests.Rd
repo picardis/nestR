@@ -2,7 +2,7 @@
 % Please edit documentation in R/shiny_funs.R
 \name{explore_nests}
 \alias{explore_nests}
-\title{Launch shiny app for nesting data exploration}
+\title{Launch Shiny app for nesting data exploration}
 \usage{
 explore_nests(gps_data)
 }

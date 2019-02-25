@@ -123,9 +123,9 @@
 #' between first and last visit
 #' @param discard_overlapping If results include temporally overlapping
 #' attempts, select only one among those? Defaults to \code{TRUE}.
-#' @return Returns a \code{list} of two elements: first, a \code{data.frame}
-#' of nest locations and associated revisitation stats; second, a
-#' \code{data.frame} of nest revisitation histories.
+#' @return Returns a \code{list} of two elements: first, `nests`, a
+#' \code{data.frame} of nest locations and associated revisitation stats;
+#' second, `visits`, a \code{data.frame} of nest revisitation histories.
 #'
 #' @export
 find_nests <- function(gps_data,

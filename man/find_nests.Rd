@@ -39,9 +39,9 @@ between first and last visit}
 attempts, select only one among those? Defaults to \code{TRUE}.}
 }
 \value{
-Returns a \code{list} of two elements: first, a \code{data.frame}
-of nest locations and associated revisitation stats; second, a
-\code{data.frame} of nest revisitation histories.
+Returns a \code{list} of two elements: first, `nests`, a
+\code{data.frame} of nest locations and associated revisitation stats;
+second, `visits`, a \code{data.frame} of nest revisitation histories.
 }
 \description{
 \code{find_nests} finds nest locations from GPS data based on patterns of

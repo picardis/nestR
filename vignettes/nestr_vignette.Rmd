@@ -44,7 +44,7 @@ suppressWarnings({
 
 ## Introduction
 
-The `nestR` package provides functions to locate nesting attempts and estimate their outcome from bird GPS-tracking data. Being able to estimate reproductive outcome from GPS data bridges the gap between movement and reproductive fitness. 
+The `nestR` package provides functions to locate nesting attempts and estimate their outcome from bird GPS-tracking data. Being able to estimate reproductive outcome from GPS data bridges the gap between movement and an important component of individual fitness. 
 
 This vignette presents the workflow of the `nestR` package. The workflow can be conceptually divided in two parts: [first](#part1), the identification of nesting attempts along individual movement trajectories, and [second](#part2), the estimation of the outcome of nesting attempts. 
 
@@ -60,13 +60,13 @@ knitr::include_graphics("img/nestR_flowchart.jpeg")
 
 <br>
 
-For illustration purposes, this vignette uses example datasets on three bird species: wood storks (*Mycteria americana*), lesser kestrels (*Falco naumanni*), and mediterranean gulls (*Ichthyaetus melanocephalus*). Each dataset includes real trajectories for two individual-years. All example datasets are available within the package. 
+For illustration purposes, this vignette uses example datasets on three bird species: wood storks (*Mycteria americana*), lesser kestrels (*Falco naumanni*), and Mediterranean gulls (*Ichthyaetus melanocephalus*). Each dataset includes real trajectories for two individual-years. All example datasets are available within the package. 
 
 ## TL;DR
 
 This section is meant to provide a concise and self-sufficient overview of the capabilities of the `nestR` package. Readers that want to get familiar with `nestR` without delving too deep into the technical aspects can stop at the end of this section. The next sections provide a more detailed guide to the usage of `nestR` functions.
 
-* **Context** -- The rationale behind the development of `nestR` is that bird movement patterns during nesting differ from those they exhibit when non nesting, and that this behavioral signal is observable in tracking data and can be used to infer the location of nests and the outcome of nesting attempts (see conceptual figure below). When birds are nesting, they exhibit back-and-forth movements to and from their nest while they provide food for their nestlings and themselves. Parents keep returning to their nest to feed their offspring until fledging. Repeatedly visited locations can be identified along movement trajectories, and patterns of revisitation can be used to determine whether a location that gets visited repeatedly is likely to be a nest. Histories of nest revisitation can then be used to estimate the outcome of nesting attempts. Specifically, we can estimate if an attempt was successful or not according to whether it lasted as long as the duration of a complete nesting cycle for the focal species. The underlying assumption is that the nest stops being revisited after an attempt fails, which is true for many bird species. 
+* **Context** -- The rationale behind the development of `nestR` is that bird movement patterns during nesting differ from those they exhibit when non nesting, and that this behavioral signal is observable in tracking data and can be used to infer the location of nests and the outcome of nesting attempts (see conceptual figure below). When birds are nesting, they behave as central place foragers, exhibiting back-and-forth movements to and from their nest while they provide food for their nestlings and themselves. Parents keep returning to their nest to feed their offspring until fledging. Repeatedly visited locations can be identified along movement trajectories, and patterns of revisitation can be used to determine whether a location that gets visited repeatedly is likely to be a nest. Histories of nest revisitation can then be used to estimate the outcome of nesting attempts. Specifically, we can estimate if an attempt was successful or not according to whether it lasted as long as the theoretical duration of a complete nesting cycle for the focal species. The underlying assumption is that the nest stops being revisited after an attempt fails, which is true for many bird species. 
 
 <br>
 ```{r conceptual traj fig, echo = FALSE, out.width = '100%', fig.align = 'center'}
@@ -146,7 +146,7 @@ ws <- c("woodstorks", "1 hour", "18 meters",
         "High", "Birth/non-breeding", "110 days",
         "Nov-Aug (varies with latitude)", "No", "Yes")
 lk <- c("kestrels", "15 minutes", "~10 meters", 
-        "Low", "Incubation", "60 days",
+        "Low", "Early chick-rearing", "60 days",
         "Apr-Jul", "Yes", "No")
 mg <- c("gulls", "15 minutes", "~10 meters", 
         "Low", "Incubation", "60 days",
@@ -232,9 +232,9 @@ The output of `find_nests()` is a list with two elements: `nests` and `visits`. 
 
 ```{r output example nests, echo = FALSE}
 
-data(wost_output_1)
+data(ws_output_1)
 
-wost_output_1$nests %>% 
+ws_output_1$nests %>% 
   group_by(burst) %>% 
   slice(1) %>% 
   as.data.frame()
@@ -262,9 +262,9 @@ The second element of the list that `find_nests()` returns as output is a `data.
 
 ```{r output example visits, echo = FALSE}
 
-data(wost_output_1)
+data(ws_output_1)
 
-wost_output_1$visits %>%
+ws_output_1$visits %>%
   slice(170:182) %>% 
   as.data.frame() 
 
@@ -286,9 +286,9 @@ We set the three filtering arguments to low values, meaning that the constraints
 
 Fair warning: depending on the amount of data, `find_nests()` can be computationally intensive and take some time to run (typically <1 minute per burst).
 
-```{r wost screening, eval = FALSE}
+```{r ws screening, eval = FALSE}
 
-wost_output_1 <- find_nests(gps_data = woodstorks,
+ws_output_1 <- find_nests(gps_data = woodstorks,
                     sea_start = "11-01",
                     sea_end = "08-31",
                     nest_cycle = 110,
@@ -306,14 +306,14 @@ Here is what the output looks like:
 
 ```{r print output, eval = FALSE}
 
-head(wost_output_1$nests)
+head(ws_output_1$nests)
 
 ```
 
 ```{r print output for real, echo = FALSE}
 
-data(wost_output_1)
-head(wost_output_1$nests)
+data(ws_output_1)
+head(ws_output_1$nests)
 
 ```
 
@@ -321,7 +321,7 @@ Let's check how many revisited locations were returned with this set of paramete
 
 ```{r dim output 1}
 
-table(wost_output_1$nests$burst)
+table(ws_output_1$nests$burst)
 
 ```
 
@@ -341,7 +341,7 @@ Let's look at the first few revisited locations identified for this individual i
 
 ```{r jax}
 
-head(wost_output_1$nests %>% filter(burst == "721290-2010"))
+head(ws_output_1$nests %>% filter(burst == "721290-2010"))
 
 ```
 
@@ -359,7 +359,7 @@ The coordinates match until the third (longitude) and fourth (latitude) decimal 
 
 ```{r dist}
 
-coords_cand <- wost_output_1$nests %>% 
+coords_cand <- ws_output_1$nests %>% 
   filter(burst == "721290-2010") %>% 
   slice(1) %>% 
   select(long, lat)
@@ -392,7 +392,7 @@ Here is the output of `get_explodata()` for the Jacksonville stork:
 
 ```{r get explo stork 1}
 
-output_stork1 <- wost_output_1$nests %>% 
+output_stork1 <- ws_output_1$nests %>% 
   filter(burst == "721290-2010")
 
 (explodata_stork1 <- get_explodata(candidate_nests = output_stork1, 
@@ -430,9 +430,9 @@ knitr::include_graphics("img/nestR_img1.jpg")
 
 ```
 
-```{r wost2}
+```{r ws2}
 
-wost_output_1$nests %>% 
+ws_output_1$nests %>% 
   filter(burst == "1134370-2013") %>% 
   slice(1) 
 
@@ -450,7 +450,7 @@ The function `get_explodata()` allows the user to input information on true nest
 
 ```{r get explo stork 2}
 
-output_stork2 <- wost_output_1$nests %>% 
+output_stork2 <- ws_output_1$nests %>% 
   filter(burst == "1134370-2013")
 
 id_known <- data.frame(burst = "1134370-2013",
@@ -472,8 +472,8 @@ To run the CART, we are going to use a larger version of the exploratory dataset
 
 ```{r show explodata}
 
-data(explodata_storks)
-head(explodata_storks)
+data(explodata_ws)
+head(explodata_ws)
 
 ```
 
@@ -481,20 +481,20 @@ We are going to use half of the data to train the CART and the other half to tes
 
 ```{r set seed, echo = FALSE}
 
-set.seed(22)
+set.seed(12)
 
 ```
 
 ```{r cart example, fig.width = 7, fig.height = 6, fig.align = 'center'}
 
-(ws_cart <- discriminate_nests(explodata = explodata_storks, train_frac = 0.5))
+(ws_cart <- discriminate_nests(explodata = explodata_ws, train_frac = 0.5))
 
 ```
 
-The resulting tree shows that two criteria can help us tell nests apart from non-nests: (1) a location needs to be visited for at least 15 consecutive days, for at least 53% of days between first and last visit, and at least 85% of the time on the day the attendance is maximum to be a nest; (2) or, if it is not visited for at least 15 days, then the percent attendance on the top day needs to be at least 94%. These criteria translate in the following sets of parameters:
+The resulting tree shows that two criteria can help us tell nests apart from non-nests: (1) a location needs to be visited for at least 81% of the time on the day the attendance is maximum and for at least 17 consecutive days to be a nest; (2) or, if it does not satisfy this criterion, it has to be visited for at least 31 consecutive days. These criteria translate in the following sets of parameters:
 
-* `perc_top_vis >= 85`, `perc_days_vis >= 53`, `cons_days >= 15`
-* `perc_top_vis >= 94`, `perc_days_vis >= 53`
+* `min_top_att >= 81`, `min_consec >= 17`
+* `min_consec >= 31`
 
 ### Step 3: Identifying nests among revisited locations {#step3}
 
@@ -502,16 +502,16 @@ After having identified sets of parameter values that discriminate between nests
 
 ```{r find nests 1, eval = FALSE}
 
-wost_output_2 <- find_nests(gps_data = woodstorks,
+ws_output_2 <- find_nests(gps_data = woodstorks,
                     sea_start = 305,
                     sea_end = 243,
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
                     min_d_fix = 5,
-                    min_consec = 15,
-                    min_top_att = 85,
-                    min_days_att = 53,
+                    min_consec = 17,
+                    min_top_att = 81,
+                    min_days_att = 1,
                     discard_overlapping = TRUE)
 
 ```
@@ -520,14 +520,14 @@ Note that for all other arguments in the function (those related to the species 
 
 ```{r show output2, eval = FALSE}
 
-wost_output_2$nests
+ws_output_2$nests
 
 ```
 
 ```{r show output2 for real, echo = FALSE}
 
-data(wost_output_2)
-wost_output_2$nests
+data(ws_output_2)
+ws_output_2$nests
 
 ```
 
@@ -537,38 +537,36 @@ Let's see what happens with the other set of parameters:
 
 ```{r find nests 2, eval = FALSE}
 
-wost_output_3 <- find_nests(gps_data = woodstorks,
+ws_output_3 <- find_nests(gps_data = woodstorks,
                     sea_start = 305,
                     sea_end = 243,
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
                     min_d_fix = 5,
-                    min_consec = 2,
-                    min_top_att = 94,
-                    min_days_att = 53,
+                    min_consec = 31,
+                    min_top_att = 1,
+                    min_days_att = 1,
                     discard_overlapping = TRUE)
 
-wost_output_3$nests
+ws_output_3$nests
 
 ```
 
 ```{r show output3 for real, echo = FALSE}
 
-data(wost_output_3)
-wost_output_3$nests
+data(ws_output_3)
+ws_output_3$nests
 
 ```
 
-The correct nest for 721290-2010 was returned as well as the two nests we found with the previous set of parameters for 1134370-2013. In this case, all nests satisfied the criteria defined in both sets of filtering parameters. 
+The correct (known) nests for 721290-2010 and 1134370-2013 were both returned. In this case, these two nests satisfied the criteria defined in both sets of filtering parameters. 
 
-Since all nests were identified with both sets of parameters, there is no need to merge the two outputs. However, for 1134370-2013 at location 2170, the attempt start dates estimated with the first and second set of parameters differ. This is because the value of `min_consec` used in input differs between the two sets. Recall that `find_nests()` sets the start of a nesting attempt to the first occurrence of a stretch of consecutive days at least as long as `min_consec`, to avoid counting extra visits to the nest location as part of the attempt. Which output to choose is essentially a judgement call, which should once again be driven by knowledge of the species' ecology. Wood stork attendance at the nest is almost uninterrupted in the initial phase of nesting (during pair formation, nest building, and early incubation). Therefore, we expect that the longest stretch of consecutive days we observe corresponds to the very beginning of a nesting attempt. Missed nest visits could be problematic in this case, but setting `min_d_fix` to a large enough value should make us feel relatively safe. Based on these considerations, we choose to retain the output obtained with the stricter threshold of `min_consec` - which corresponds to the shorter attempt duration. This choice will ensure a more conservative estimation of nesting outcome later on. 
-
-The data on nesting attempts obtained as output of `find_nests()` will be the starting point for the second part of the workflow, where we will estimate reproductive outcome. 
+We'll proceed with the output we obtained with the first set of parameters, including the two known nests and the plausible second attempt we found for 1134370-2013. The data on nesting attempts obtained as output of `find_nests()` will be the starting point for the second part of the workflow, where we will estimate reproductive outcome. 
 
 ```{r merge outputs}
 
-wost_nests <- wost_output_2
+ws_nests <- ws_output_2
 
 ```
 
@@ -588,23 +586,23 @@ The function `format_attempts()` organizes the data obtained as output from `fin
 
 ```{r format data for outcome estimation}
 
-wost_attempts <- format_attempts(nest_info = wost_nests, nest_cycle = 110)
+ws_attempts <- format_attempts(nest_info = ws_nests, nest_cycle = 110)
 
 ```
 
 ```{r show fixes}
 
 # Matrix of fixes
-class(wost_attempts$fixes)
-dim(wost_attempts$fixes)
+class(ws_attempts$fixes)
+dim(ws_attempts$fixes)
 
 ```
 
 ```{r show visits}
 
 # Matrix of visits
-class(wost_attempts$visits)
-dim(wost_attempts$visits)
+class(ws_attempts$visits)
+dim(ws_attempts$visits)
 
 ```
 
@@ -649,23 +647,23 @@ Notice that we assume that daily survival ($\phi$) and detection ($p$) are the s
 
 ### Model fitting and results
 
-In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes()` on `wost_attempt` using the model where $p$ varies with time:
+In the case of wood storks, we expect the probability of detection to decrease with time. Wood stork attendance at the nest is maximum during the initial phase of nesting, when birds are building their nest and forming pairs, and stays very high during incubation. We expect to observe nest visits on most of the days during this phase. After hatching, the male and female start alternating in leaving the nest to go on foraging trips. Still, the nest is never left unattended and at least one parent is at the nest for periods of multiple hours a day. The probability of detection should slightly decrease at this point but still remain high enough that visits are observed on the majority of days. When chicks grow big enough that they can thermoregulate on their own and increase their energetic demands, foraging trips become more and more frequent and the nest is left unattended for long chunks of time. Therefore, in the last few weeks before fledging the probability of detecting a nest visit is expected to drop. Therefore, the model with p varying through time is appropriate in the case of wood storks. We run `estimate_outcomes()` on `ws_attempt` using the model where $p$ varies with time:
 
 ```{r run JAGS, eval = FALSE}
 
 # Using default MCMC parameters (mcmc_params)
 
-wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes, 
-                                   visits = wost_attempts$visits,
+ws_outcomes <- estimate_outcomes(fixes = ws_attempts$fixes, 
+                                   visits = ws_attempts$visits,
                                    model = "p_time")
 
-str(wost_outcomes)
+str(ws_outcomes)
 
 ```
 
 ```{r load JAGS results, echo = FALSE}
 
-data(wost_outcomes)
+data(ws_outcomes)
 
 ```
 
@@ -686,10 +684,10 @@ We can now plot survival and detection probability through time at the populatio
 ```{r custom population summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 # Plot population-level daily survival
-plot_survival(wost_outcomes)
+plot_survival(ws_outcomes)
 
 # Plot population-level detection
-plot_detection(wost_outcomes)
+plot_detection(ws_outcomes)
 
 ```
 
@@ -700,13 +698,13 @@ The MCMC algorithm also monitors the $z_t$ for all bursts, so we are able to spe
 ```{r custom burst summary plots, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
 # Plot estimated survival for burst 1
-plot_nest_surv(wost_outcomes, who = 1)
+plot_nest_surv(ws_outcomes, who = 1)
 
 # Plot estimated survival for burst 2
-plot_nest_surv(wost_outcomes, who = 2)
+plot_nest_surv(ws_outcomes, who = 2)
 
 # Plot estimated survival for burst 3
-plot_nest_surv(wost_outcomes, who = 3)
+plot_nest_surv(ws_outcomes, who = 3)
 
 
 ```
@@ -723,7 +721,7 @@ Finally, the function `summarize_outcomes()` formats the output of the MCMC into
 
 ```{r summarize outcomes}
 
-summarize_outcomes(wost_outcomes, ci = 0.95)
+summarize_outcomes(ws_outcomes, ci = 0.95)
 
 ```
 
@@ -731,11 +729,11 @@ The `coda` diagnostics are available after converting the output of `estimate_ou
 
 ```{r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
 
-wost_pb0_coda <- as.mcmc.list(wost_outcomes$p.b0)
-wost_pb1_coda <- as.mcmc.list(wost_outcomes$p.b1)
+ws_pb0_coda <- as.mcmc.list(ws_outcomes$p.b0)
+ws_pb1_coda <- as.mcmc.list(ws_outcomes$p.b1)
 
-plot(wost_pb0_coda)
-plot(wost_pb1_coda)
+plot(ws_pb0_coda)
+plot(ws_pb1_coda)
 
 ```
 

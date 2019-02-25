@@ -13,7 +13,8 @@ discriminate_nests(explodata, train_frac)
 \item{train_frac}{Numeric. The fraction of data to use for training}
 }
 \value{
-A \code{list} with ...
+A \code{list} with the Type I and II estimated error rates
+(where applicable) and a plot of the CART output.
 }
 \description{
 \code{discriminate_nests} uses CART to find sets of parameter values that
@@ -22,8 +23,8 @@ best distinguish nests from non-nests among revisited locations.
 \details{
 Given a dataset of revisited locations flagged as either nests or
 non-nests, \code{discriminate_nests} uses Classification and Regression Trees
-(CART) to find the set (or sets) of parameters that best distinguishes
-between nests and non-nests.
+(CART) to find the set (or sets) of revisitation parameters that best
+distinguishes between nests and non-nests.
 
 The function fits a CART model on the training fraction of the data, prunes
 the tree, and performs cross-validation using the testing fraction of the

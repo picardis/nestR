@@ -11,10 +11,20 @@ format_attempts(nest_info, nest_cycle)
 
 \item{nest_cycle}{Duration of nesting cycle}
 }
+\value{
+A \code{list} with two matrices: `fixes`, a matrix of GPS fixes
+available on each day of the attempt; and `visits`, a matrix of nest
+visits on each day of the attempt.
+}
 \description{
 \code{format_attempts} takes as input the output of \code{find_nests} and
 formats it for input in \code{estimate_outcomes}.
 }
 \details{
-bla
+The history of nest revisitation in the `visits` data frame
+in output from \code{find_nests} gets formatted as a matrix indicating,
+for each day, the number of GPS points at the nest. This is the `visits`
+matrix that \code{format_attempts} will output. Concurrently, another
+matrix is created, `fixes`, indicating the number of GPS points available
+on each day.
 }

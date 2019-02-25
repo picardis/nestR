@@ -1,4 +1,4 @@
-#' Launch shiny app for nesting data exploration
+#' Launch Shiny app for nesting data exploration
 #'
 #' \code{explore_nests} launches a Shiny app for dynamic exploration and
 #' visualization of nests from movement data

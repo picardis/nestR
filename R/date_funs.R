@@ -12,7 +12,6 @@
 #' @param sea_end Character string for month and day
 #' ("mm-dd") in which the nesting season ends
 #' @return Returns subset of data comprised within the nesting season
-#' @export
 date_handler <- function(dat, sea_start, sea_end) {
 
     sea_start <- lubridate::ymd(paste0("1990-", sea_start))

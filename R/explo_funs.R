@@ -250,8 +250,8 @@ get_explodata <- function(candidate_nests,
 #'
 #' @details Given a dataset of revisited locations flagged as either nests or
 #' non-nests, \code{discriminate_nests} uses Classification and Regression Trees
-#' (CART) to find the set (or sets) of parameters that best distinguishes
-#' between nests and non-nests.
+#' (CART) to find the set (or sets) of revisitation parameters that best
+#' distinguishes between nests and non-nests.
 #'
 #' The function fits a CART model on the training fraction of the data, prunes
 #' the tree, and performs cross-validation using the testing fraction of the
@@ -273,7 +273,8 @@ get_explodata <- function(candidate_nests,
 #' @param explodata \code{data.frame} of nests and non-nests as output by
 #' \code{get_explodata}
 #' @param train_frac Numeric. The fraction of data to use for training
-#' @return A \code{list} with ...
+#' @return A \code{list} with the Type I and II estimated error rates
+#' (where applicable) and a plot of the CART output.
 #'
 #' @export
 discriminate_nests <- function(explodata, train_frac) {

@@ -3,94 +3,35 @@ library(dplyr)
 
 # Load raw data ----
 
-# Load dataset of trusted WOST data
-wost_t_raw <- read_csv("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/output/trusted_data_0917.csv")
+# Load dataset of Wood Stork data
+ws_raw <- readRDS("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/input/ws_gps_data.rds")
 
-# Keep columns of interest and rename
-wost_t_raw <- wost_t_raw %>%
-  select(burst, date, long, lat) %>%
-  mutate(burst = gsub(" ", "-", burst))
-
-# Load dataset of Jacksonville WOST data
-wost_j_raw <- read_csv("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/output/jax_known_data.csv")
-
-# Keep columns of interest and rename
-wost_j_raw <- wost_j_raw %>%
+# Keep columns of interest
+ws_raw <- ws_raw %>%
   select(burst, date, long, lat)
 
 # Load dataset of Kestrel data
-kestrels_raw <- read.csv("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/output/LEKE/LEKE_nesters.csv",
-                         stringsAsFactors = FALSE)
-
-# Keep columns of interest and rename
-kestrels_raw <- kestrels_raw %>%
-  select(burst, date, long, lat) %>%
-  as_tibble()
+lk_raw <- readRDS("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/input/lk_gps_data.rds")
 
 # Load dataset of Gull data
-gulls_raw <- read_csv("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/output/MEGU/MEGU_nesters.csv")
-
-# Keep columns of interest and rename
-gulls_raw <- gulls_raw %>%
-  select(burst, date, long, lat)
+mg_raw <- readRDS("~/Documents/PhD/Research/Wood Stork/WOST_repo/nesting/input/mg_gps_data.rds")
 
 # Create example datasets ----
 
-# Select one Wood Stork among the trusted nesters
-wost_pt1 <- wost_t_raw %>%
-  filter(burst == "1134370-2013") %>%
-  as.data.frame()
-
-# Select one Wood Stork among the Jacksonville ones
-wost_pt2 <- wost_j_raw %>%
-  filter(burst == "721290-2010") %>%
-  as.data.frame()
-
 # Create example dataset for Wood Storks
-woodstorks <- rbind(wost_pt1, wost_pt2)
+woodstorks <- ws_raw %>%
+  filter(burst %in% c("1134370-2013", "721290-2010")) %>%
+  as.data.frame()
 
 # Create example dataset for Kestrels
-kestrels <- kestrels_raw %>%
+kestrels <- lk_raw %>%
   filter(burst %in% c("16682-2017", "16680-2017")) %>%
   as.data.frame()
 
-# Successful attempts
-# 16334 - 45 days vis
-# 16336 - 44 days vis
-# 16351 - 45 days vis
-# 16363 - 40 days vis
-# 16371 - 36 days vis
-# 16375 - 30 days vis
-# 16520 - 44 days vis
-# 16527 - 33 days vis
-# 16550 - 42 days vis
-# 16558 - 40 days vis
-# 16588 - 40 days vis
-# 16680 - 47 days vis
-# 16685 - 34 days vis
-
-# Failed attempts
-# 16339 - 28 days vis
-# 16341 - 25 days vis
-# 16374 - 27 days vis
-# 16216 - 24 days vis
-# 16557 - 20 days vis
-# 16682 - 21 days vis
-# 16683 - 31 days vis
-
 # Create example dataset for Gulls
-gulls <- gulls_raw %>%
+gulls <- mg_raw %>%
   filter(burst %in% c("URI29-2016", "URI05-2016")) %>%
   as.data.frame()
-
-# URI06-2016 is a good girl but it looks like the tag might have failed
-# URI30-2016 crashes - not anymore with shorter season - 45 days visited
-# URI28-2016 crashes - still crashes
-# URI29-2016 crashes - not anymore with shorter season - 49 days visited
-# URI25-2016 crashes - not anymore with shorter season - 47 days visited
-# URI04-2016 crashes - not anymore with shorter season - 43 days visited
-
-# Save
 
 usethis::use_data(woodstorks, overwrite = TRUE)
 usethis::use_data(kestrels, overwrite = TRUE)
@@ -98,7 +39,7 @@ usethis::use_data(gulls, overwrite = TRUE)
 
 # Example outputs for WS ----
 
-wost_output_1 <- find_nests(gps_data = woodstorks,
+ws_output_1 <- find_nests(gps_data = woodstorks,
                     sea_start = "11-01",
                     sea_end = "08-31",
                     nest_cycle = 110,
@@ -110,35 +51,35 @@ wost_output_1 <- find_nests(gps_data = woodstorks,
                     min_days_att = 1,
                     discard_overlapping = FALSE)
 
-usethis::use_data(wost_output_1, overwrite = TRUE)
+usethis::use_data(ws_output_1, overwrite = TRUE)
 
-wost_output_2 <- find_nests(gps_data = woodstorks,
-                            sea_start = "11-01",
-                            sea_end = "08-31",
-                            nest_cycle = 110,
-                            buffer = 40,
-                            min_pts = 2,
-                            min_d_fix = 5,
-                            min_consec = 15,
-                            min_top_att = 85,
-                            min_days_att = 53,
-                            discard_overlapping = TRUE)
+ws_output_2 <- find_nests(gps_data = woodstorks,
+                          sea_start = "11-01",
+                          sea_end = "08-31",
+                          nest_cycle = 110,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 5,
+                          min_consec = 17,
+                          min_top_att = 81,
+                          min_days_att = 1,
+                          discard_overlapping = TRUE)
 
-usethis::use_data(wost_output_2, overwrite = TRUE)
+usethis::use_data(ws_output_2, overwrite = TRUE)
 
-wost_output_3 <- find_nests(gps_data = woodstorks,
-                            sea_start = "11-01",
-                            sea_end = "08-31",
-                            nest_cycle = 110,
-                            buffer = 40,
-                            min_pts = 2,
-                            min_d_fix = 5,
-                            min_consec = 2,
-                            min_top_att = 94,
-                            min_days_att = 53,
-                            discard_overlapping = TRUE)
+ws_output_3 <- find_nests(gps_data = woodstorks,
+                          sea_start = "11-01",
+                          sea_end = "08-31",
+                          nest_cycle = 110,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 5,
+                          min_consec = 31,
+                          min_top_att = 1,
+                          min_days_att = 1,
+                          discard_overlapping = TRUE)
 
-usethis::use_data(wost_output_3, overwrite = TRUE)
+usethis::use_data(ws_output_3, overwrite = TRUE)
 
 # Known nest Jacksonville stork ----
 
@@ -152,6 +93,25 @@ usethis::use_data(jax_known_nest, overwrite = TRUE)
 
 # Simulate data
 set.seed(1)
+
+# Get exploratory data for the two storks
+output_stork1 <- ws_output_1$nests %>%
+  filter(burst == "721290-2010")
+
+explodata_stork1 <- get_explodata(candidate_nests = output_stork1,
+                                  known_coords = jax_known_nest,
+                                  buffer = 40,
+                                  pick_overlapping = TRUE)
+
+output_stork2 <- ws_output_1$nests %>%
+  filter(burst == "1134370-2013")
+
+id_known <- data.frame(burst = "1134370-2013",
+                       loc_id = 2170)
+
+explodata_stork2 <- get_explodata(candidate_nests = output_stork2,
+                                  known_ids = id_known,
+                                  pick_overlapping = TRUE)
 
 # Use means of explodata_stork1 and explodata_stork2 as starting points
 explodata_bind <- rbind(explodata_stork1, explodata_stork2)
@@ -203,12 +163,12 @@ days_vis_n <- round(rnorm(100,
                           sd=20), 0)
 
 # Simulate consecutive days
-consec_days_y <- round(rnorm(100,
+consec_days_y <- round(5+rnorm(100,
                              mean=mean(explodata_yes$consec_days),
-                             sd=15), 0)
+                             sd=10), 0)
 consec_days_n <- round(rnorm(100,
                              mean=mean(explodata_no$consec_days),
-                             sd=10), 0)
+                             sd=5), 0)
 
 # Simulate percent days visited
 perc_days_vis_y <- rnorm(100,
@@ -224,10 +184,10 @@ perc_top_vis_y <- rnorm(100,
                         sd=10)
 perc_top_vis_n <- rnorm(100,
                         mean=mean(explodata_no$perc_top_vis),
-                        sd=20)
+                        sd=30)
 
 # Bind all together
-explodata_storks_y <- cbind.data.frame(burst = burst_y,
+explodata_ws_y <- cbind.data.frame(burst = burst_y,
                                        loc_id = loc_id_y,
                                        long = long_y,
                                        lat = lat_y,
@@ -241,7 +201,7 @@ explodata_storks_y <- cbind.data.frame(burst = burst_y,
                                        perc_days_vis = perc_days_vis_y,
                                        perc_top_vis = perc_top_vis_y,
                                        nest = rep("yes", 100))
-explodata_storks_n <- cbind.data.frame(burst = burst_n,
+explodata_ws_n <- cbind.data.frame(burst = burst_n,
                                        loc_id = loc_id_n,
                                        long = long_n,
                                        lat = lat_n,
@@ -255,28 +215,28 @@ explodata_storks_n <- cbind.data.frame(burst = burst_n,
                                        perc_days_vis = perc_days_vis_n,
                                        perc_top_vis = perc_top_vis_n,
                                        nest = rep("no", 100))
-explodata_storks <- rbind(explodata_storks_y, explodata_storks_n)
-explodata_storks <- explodata_storks[order(explodata_storks$burst),]
+explodata_ws <- rbind(explodata_ws_y, explodata_ws_n)
+explodata_ws <- explodata_ws[order(explodata_ws$burst),]
 
 # Fix percents above 100%
-explodata_storks$perc_days_vis <- ifelse(explodata_storks$perc_days_vis > 100,
-                                         100, explodata_storks$perc_days_vis)
-explodata_storks$perc_top_vis <- ifelse(explodata_storks$perc_top_vis > 100,
-                                        100, explodata_storks$perc_top_vis)
+explodata_ws$perc_days_vis <- ifelse(explodata_ws$perc_days_vis > 100,
+                                         100, explodata_ws$perc_days_vis)
+explodata_ws$perc_top_vis <- ifelse(explodata_ws$perc_top_vis > 100,
+                                        100, explodata_ws$perc_top_vis)
 
-usethis::use_data(explodata_storks)
+usethis::use_data(explodata_ws, overwrite = TRUE)
 
 # WS reproductive outcome data ----
 
-wost_nests <- wost_output_2
+ws_nests <- ws_output_2
 
-wost_attempts <- format_attempts(nest_info = wost_nests, nest_cycle = 110)
+ws_attempts <- format_attempts(nest_info = ws_nests, nest_cycle = 110)
 
-wost_outcomes <- estimate_outcomes(fixes = wost_attempts$fixes,
-                                   visits = wost_attempts$visits,
+ws_outcomes <- estimate_outcomes(fixes = ws_attempts$fixes,
+                                   visits = ws_attempts$visits,
                                    model = "p_time")
 
-usethis::use_data(wost_outcomes, overwrite = TRUE)
+usethis::use_data(ws_outcomes, overwrite = TRUE)
 
 # Example outputs for LK ----
 
