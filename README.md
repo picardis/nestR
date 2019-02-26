@@ -13,7 +13,7 @@ To install the current version of nestR:
 
 ## Contribution instructions
 
-Contributions are welcome through [Issues](/issues).
+Contributions are welcome through [Issues](issues).
 
 ## Resources
 
