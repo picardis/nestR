@@ -6,7 +6,7 @@ The nestR package includes functions to (1) identify nesting locations along bir
 
 ## Installation instructions
 
-To install the current development version of nestR:
+To install the current version of nestR:
 
 `library(devtools)`  
 `install_github("picardis/nestR")`
