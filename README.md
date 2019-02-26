@@ -4,14 +4,14 @@
 
 The nestR package includes functions to (1) identify nesting locations along bird movement trajectories obtained from GPS tracking data and (2) estimate the outcome of nesting attempts based on patterns of nest revisitation. The package includes functions to run the analysis as well as interactive exploratory tools and data processing and custom plotting functions. The package comes with three example datasets, each containing GPS trajectories for 2 individual-years of the following species: wood storks (*Mycteria americana*), lesser kestrel (*Falco naumanni*), and Mediterranean gull (*Ichthyaetus melanocephalus*). 
 
-## Installation instructions
+## Installation Instructions
 
 To install the current version of nestR:
 
 `library(devtools)`  
 `install_github("picardis/nestR", build_vignettes = TRUE)`
 
-## Contribution instructions
+## Contribution Instructions
 
 Contributions are welcome through [Issues](https://github.com/picardis/nestR/issues).
 
