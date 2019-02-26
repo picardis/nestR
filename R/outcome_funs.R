@@ -148,10 +148,7 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = phi_lwr,
                                       ymax = phi_upr),
-                         fill = viridis::viridis(n = 1,
-                                                 alpha = 0.5,
-                                                 begin = 0.5,
-                                                 end = 0.5)) +
+                         fill = "#7AD15180") +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
           axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
@@ -196,10 +193,7 @@ plot_detection <- function(mcmc_obj, ci = 0.95){
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = p_lwr,
                                       ymax = p_upr),
-                         fill = viridis::viridis(n = 1,
-                                                 alpha = 0.5,
-                                                 begin = 0.2,
-                                                 end = 0.2)) +
+                         fill = "#41448780") +
     ggplot2::theme_minimal(base_size = 12) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),

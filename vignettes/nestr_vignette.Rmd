@@ -379,7 +379,7 @@ One way of going about this task would be to select the second most visited loca
 
 Some species are known to be able to nest twice in the same breeding season if they start the first clutch early enough or if their first attempt fails. In this case, one way to be sure that the location we select is truly a non-nest is to choose one that temporally overlaps with the true nesting attempt at the known location. This is where having set `discard_overlapping = FALSE` in `find_nests()` comes in handy, as it made sure that locations visited simultaneously to the true nest were still retained in our output. 
 
-In the case of the Jacksonville stork, the nesting attempt at the true nest was estimated to start on March 24^th^, 2010, and end on July 7^th^, 2010. The second and third locations were both visited in a time range that does not overlap with that interval. The first instance of a location that was visited simultaneously with the true nest is the fourth location in the set. Since wood storks are able to have repeated nesting attempts, we can conservatively choose the fourth location as a non-nest to compare the nest to, rather than the second. 
+In the case of the Jacksonville stork, the nesting attempt at the true nest was estimated to start on March 24^th^, 2010, and end on July 11^th^, 2010. The second and third locations were both visited in a time range that does not overlap with that interval. The first instance of a location that was visited simultaneously with the true nest is the fourth location in the set. Since wood storks are able to have repeated nesting attempts, we can conservatively choose the fourth location as a non-nest to compare the nest to, rather than the second. 
 
 The function `get_explodata()` automates the process we described so far. It takes as input the list of candidate nests output by `find_nests()`, and a data frame of coordinates for the known nests (`known_coords`). The argument `pick_overlapping` allows the user to decide whether the criterion of temporal overlap to a true nest gets applied or not when selecting a non-nest. For species that do not re-nest, this might not be necessary. The function is also designed to handle two possible sources of error that could arise from automating the process instead of supervising it:
 
@@ -503,8 +503,8 @@ After having identified sets of parameter values that discriminate between nests
 ```{r find nests 1, eval = FALSE}
 
 ws_output_2 <- find_nests(gps_data = woodstorks,
-                    sea_start = 305,
-                    sea_end = 243,
+                    sea_start = "11-01",
+                    sea_end = "08-31",
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
@@ -538,8 +538,8 @@ Let's see what happens with the other set of parameters:
 ```{r find nests 2, eval = FALSE}
 
 ws_output_3 <- find_nests(gps_data = woodstorks,
-                    sea_start = 305,
-                    sea_end = 243,
+                    sea_start = "11-01",
+                    sea_end = "08-31",
                     nest_cycle = 110,
                     buffer = 40,
                     min_pts = 2,
