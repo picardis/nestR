@@ -17,6 +17,8 @@ Contributions are welcome through [Issues](https://github.com/picardis/nestR/iss
 
 ## Resources
 
+Functions in nestR implement an approach first described in our manuscript: "A data-driven method to locate nest sites and estimate reproductive outcome from avian telemetry data". The manuscript is currently available as a preprint at the following link: https://www.biorxiv.org/content/10.1101/562025v1
+
 For details on package features and example applications, check out the nestR vignette:
 
 `vignette(package = "nestR")`
