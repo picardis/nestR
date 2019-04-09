@@ -54,7 +54,7 @@ The following diagram summarizes the workflow and provides a roadmap for the rea
 
 ```{r flowchart, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-knitr::include_graphics("img/nestR_flowchart.jpeg")
+knitr::include_graphics("img/nestR_flowchart.jpg")
 
 ```
 
