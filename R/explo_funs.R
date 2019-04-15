@@ -302,7 +302,7 @@ discriminate_nests <- function(explodata, train_frac) {
   cart <- rpart::rpart(model,
                        data = train_data,
                        method = "class",
-                       control = rpart::rpart.control(minsplit=1, cp=0.0001))
+                       control = rpart::rpart.control(minbucket=3, cp=0.01))
 
   # Get X-rel error data to select optimal tree
   invisible(capture.output(cart_summary <- summary(cart)))
