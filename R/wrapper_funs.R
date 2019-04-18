@@ -257,7 +257,8 @@ find_nests <- function(gps_data,
 
     # Calculate revisitation stats
     cat("Calculating revisitation patterns... ")
-    daily_stats <- revisit_stats(sub = sub,
+    daily_stats <- revisit_stats(dat = dat,
+                                 sub = sub,
                                  sea_start = sea_start,
                                  sea_end = sea_end,
                                  min_d_fix = min_d_fix,

@@ -202,7 +202,7 @@ revisit_stats <- function(sub,
   out <- data.frame(group_id = sort(unique(sub$group_id)))
 
   # Number of fixes per day
-  daily_fixes <- sub %>%
+  daily_fixes <- dat %>%
     group_by(reldate) %>%
     summarize(n_fixes = n()) %>%
     select(reldate, n_fixes) %>%
