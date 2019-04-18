@@ -4,7 +4,8 @@
 \alias{revisit_stats}
 \title{Calculate revisitation patterns}
 \usage{
-revisit_stats(sub, sea_start, sea_end, min_d_fix, min_consec, nest_cycle)
+revisit_stats(dat, sub, sea_start, sea_end, min_d_fix, min_consec,
+  nest_cycle)
 }
 \arguments{
 \item{sub}{\code{data.frame}. Subset of movement data corresponding to

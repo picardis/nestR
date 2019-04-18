@@ -188,7 +188,8 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 #' be counted as not visited if a visit was not observed
 #' @return Returns \code{data.frame} with revisitation statistics for each
 #' candidate nest.
-revisit_stats <- function(sub,
+revisit_stats <- function(dat,
+                          sub,
                           sea_start,
                           sea_end,
                           min_d_fix,
