@@ -153,7 +153,7 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
           axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 20)),
           axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 20))) +
-    ggplot2::ylab("Daily Survival (Z)") +
+    ggplot2::ylab("Daily Survival (phi)") +
     ggplot2::xlab("Days") +
     ggplot2::ggtitle("Survival")
 

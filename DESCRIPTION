@@ -16,7 +16,9 @@ Depends:
     rjags,
     shiny,
     shinydashboard,
-    leaflet
+    leaflet,
+    kableExtra,
+    gridExtra
 Imports: 
     forcats,
     rpart,
