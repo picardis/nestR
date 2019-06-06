@@ -54,7 +54,7 @@ The following diagram summarizes the workflow and provides a roadmap for the rea
 
 ```{r flowchart, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-knitr::include_graphics("img/nestR_flowchart.jpg")
+knitr::include_graphics("nestR_flowchart.jpg")
 
 ```
 
@@ -71,7 +71,7 @@ This section is meant to provide a concise and self-sufficient overview of the c
 <br>
 ```{r conceptual traj fig, echo = FALSE, out.width = '100%', fig.align = 'center'}
 
-knitr::include_graphics("img/concept_trajs.jpg")
+knitr::include_graphics("concept_trajs.jpg")
 
 ```
 <br>
@@ -412,7 +412,7 @@ A useful tool available within `nestR` for visual exploration of the data is ava
 
 ```{r explore_nests parameters, echo = FALSE, fig.cap = "", out.width = '50%'}
 
-#knitr::include_graphics("img/nestR_explore_nests_params.jpg")
+#knitr::include_graphics("nestR_explore_nests_params.jpg")
 
 ```
 
@@ -426,7 +426,7 @@ explore_nests(woodstorks)
 
 ```{r screenshot1, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-knitr::include_graphics("img/nestR_img1.jpg")
+knitr::include_graphics("nestR_image1.jpg")
 
 ```
 
@@ -440,7 +440,7 @@ ws_output_1$nests %>%
 
 ```{r screenshot2, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-knitr::include_graphics("img/nestR_img2.jpg")
+knitr::include_graphics("nestR_image2.jpg")
 
 ```
 
