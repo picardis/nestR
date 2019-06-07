@@ -14,10 +14,10 @@ dist_mat <- function(dat){
 
   # Arrange distance matrix
   dmat <- data.frame(orig_id = rep(dat$loc_id, nrow(dat))) %>%
-    left_join(select(dat, loc_id, orig_lon = long, orig_lat = lat),
+    left_join(dplyr::select(dat, loc_id, orig_lon = long, orig_lat = lat),
               by = c("orig_id" = "loc_id")) %>%
     mutate(dest_id = rep(dat$loc_id, each=nrow(dat))) %>%
-    left_join(select(dat, loc_id, dest_lon = long, dest_lat = lat),
+    left_join(dplyr::select(dat, loc_id, dest_lon = long, dest_lat = lat),
               by = c("dest_id" = "loc_id"))
 
   # Convert to data.table
@@ -117,7 +117,7 @@ get_candidates <- function(dm, buffer, min_pts = 2){
 
   # Create data.frame with loc_id and the group_id it belongs in
   cands <- dm %>%
-    select(loc_id = orig_id, group_id) %>%
+    dplyr::select(loc_id = orig_id, group_id) %>%
     unique() %>%
     arrange(loc_id)
 

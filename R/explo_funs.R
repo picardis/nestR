@@ -94,13 +94,13 @@ get_explodata <- function(candidate_nests,
 
       # Make into matrix for distance computation
       cands_matrix <- sub %>%
-        select(long, lat) %>%
+        dplyr::select(long, lat) %>%
         as.matrix(ncol = 2)
 
       # Select known nest location
       known <- known_coords %>%
         filter(burst == i) %>%
-        select(long, lat)
+        dplyr::select(long, lat)
 
       # Compute distance of each candidate from real nest
       sub$dist_from_known <- distGeo(cands_matrix, known)
@@ -115,7 +115,7 @@ get_explodata <- function(candidate_nests,
 
       # Get rid of dist_from_known column
       nests[[i]] <- nests[[i]] %>%
-        select(-dist_from_known)
+        dplyr::select(-dist_from_known)
 
       # If the true nest was found, select a non-nest too
       if (nrow(nests[[i]]) > 0) {
@@ -143,7 +143,7 @@ get_explodata <- function(candidate_nests,
 
           # Get rid of dist_from_known column
           non_nests[[i]] <- non_nests[[i]] %>%
-            select(-dist_from_known)
+            dplyr::select(-dist_from_known)
 
         } else { # Otherwise, if pick_overlapping == FALSE, the non-nest
           # is simply the top visited among the other points
@@ -155,7 +155,7 @@ get_explodata <- function(candidate_nests,
 
           # Get rid of dist_from_known column
           non_nests[[i]] <- non_nests[[i]] %>%
-            select(-dist_from_known)
+            dplyr::select(-dist_from_known)
 
         }
 
@@ -282,7 +282,7 @@ discriminate_nests <- function(explodata, train_frac) {
   # Transform flag (nest? y/n) to factor
   explodata <- explodata %>%
     mutate(nest = forcats::fct_relevel(as.factor(nest), "no", "yes")) %>%
-    select(nest,
+    dplyr::select(nest,
            "Consecutive_days" = consec_days,
            "Percent_days_visited" = perc_days_vis,
            "Percent_top_attendance" = perc_top_vis)

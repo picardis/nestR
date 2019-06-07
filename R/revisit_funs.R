@@ -16,7 +16,7 @@ visit_rle <- function(x){
   rl_df <- data.frame(lengths=rl$lengths, values=rl$values,
                       end = cumsum(rl$lengths)) %>%
     mutate(start = end - lengths + 1) %>%
-    select(lengths, values, start, end)
+    dplyr::select(lengths, values, start, end)
   return(rl_df)
 }
 
@@ -206,7 +206,7 @@ revisit_stats <- function(dat,
   daily_fixes <- dat %>%
     group_by(reldate) %>%
     summarize(n_fixes = n()) %>%
-    select(reldate, n_fixes) %>%
+    dplyr::select(reldate, n_fixes) %>%
     arrange(reldate)
 
   # Day of first and last visit
@@ -254,7 +254,7 @@ revisit_stats <- function(dat,
     left_join(first_vis, by = "group_id") %>%
     left_join(last_vis, by = "group_id") %>%
     filter(between(reldate, first_reldate, last_reldate)) %>%
-    select(group_id, reldate)
+    dplyr::select(group_id, reldate)
 
   # Combine with daily_visits
   daily_visits <- group_id_range %>%

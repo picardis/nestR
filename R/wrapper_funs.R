@@ -177,7 +177,7 @@ find_nests <- function(gps_data,
     dat <- dat %>%
       arrange(date) %>%
       mutate(loc_id = 1:nrow(.)) %>%
-      select(loc_id, everything())
+      dplyr::select(loc_id, everything())
 
     # Handle dates
     dates_out <- date_handler(dat, sea_start, sea_end)
@@ -273,11 +273,11 @@ find_nests <- function(gps_data,
              consec_days >= min_consec,
              perc_days_vis >= min_days_att,
              perc_top_vis >= min_top_att) %>%
-      left_join(select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
+      left_join(dplyr::select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
       mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
       mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
       mutate(burst = burst_id) %>%
-      select(burst,
+      dplyr::select(burst,
              loc_id = group_id,
              long,
              lat,
@@ -317,7 +317,7 @@ find_nests <- function(gps_data,
         group_id %in% nests$loc_id ~ group_id,
         TRUE ~ as.integer(0)
       )) %>%
-      select(burst, date, long, lat, loc_id = group_id)
+      dplyr::select(burst, date, long, lat, loc_id = group_id)
 
     cat("\nProcess completed!\n\n")
 
