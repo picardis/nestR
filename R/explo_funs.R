@@ -145,6 +145,11 @@ get_explodata <- function(candidate_nests,
           non_nests[[i]] <- non_nests[[i]] %>%
             dplyr::select(-dist_from_known)
 
+          # Warning message in case there are no temporally overlapping attempts
+          if (nrow(non_nests[[i]])==0) {
+            warning("No temporally overlapping candidates. Consider re-running using 'pick_overlapping = FALSE'")
+          }
+
         } else { # Otherwise, if pick_overlapping == FALSE, the non-nest
           # is simply the top visited among the other points
 
@@ -215,6 +220,11 @@ get_explodata <- function(candidate_nests,
               filter(between(attempt_start, true_start, true_end) |
                        between(attempt_end, true_start, true_end)) %>%
               slice(1)
+
+            # Warning message in case there are no temporally overlapping attempts
+            if (nrow(non_nests[[i]])==0) {
+              warning("No temporally overlapping candidates. Consider re-running using 'pick_overlapping = FALSE'")
+              }
 
           } else { # Otherwise, if pick_overlapping == FALSE, the non-nest
             # is simply the top visited among the other points
