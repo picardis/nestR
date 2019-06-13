@@ -5,9 +5,10 @@ date: "January 2019"
 output: 
   rmarkdown::html_vignette:
     toc: true
-vignette: |
- %\VignetteIndexEntry{Multi-format vignettes} \usepackage[utf8]{inputenc}
- %\VignetteEngine{knitr::multiformat}
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Analysis of bird nesting from GPS data in R: the `nestR` package}
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
@@ -53,10 +54,9 @@ The following diagram summarizes the workflow and provides a roadmap for the rea
 
 ```{r flowchart, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-#knitr::include_graphics("nestR_flowchart.png")
+knitr::include_graphics("nestR_flowchart.png")
 
 ```
-![](nestR_flowchart.png)
 
 <br>
 
@@ -71,10 +71,9 @@ This section is meant to provide a concise and self-sufficient overview of the c
 <br>
 ```{r conceptual traj fig, echo = FALSE, out.width = '100%', fig.align = 'center'}
 
-#knitr::include_graphics("concept_trajs.png")
+knitr::include_graphics("concept_trajs.png")
 
 ```
-![](concept_trajs.png)
 
 <br>
 
@@ -428,10 +427,9 @@ explore_nests(woodstorks)
 
 ```{r screenshot1, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-#knitr::include_graphics("nestR_image1.png")
+knitr::include_graphics("nestR_image1.png")
 
 ```
-![](nestR_image1.png)
 
 ```{r ws2}
 
@@ -443,10 +441,9 @@ ws_output_1$nests %>%
 
 ```{r screenshot2, echo = FALSE, fig.cap = "", out.width = '100%'}
 
-#knitr::include_graphics("nestR_image2.png")
+knitr::include_graphics("nestR_image2.png")
 
 ```
-![](nestR_image2.png)
 
 <br>
 
