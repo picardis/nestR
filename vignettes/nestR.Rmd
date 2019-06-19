@@ -482,7 +482,7 @@ We are going to use half of the data to train the CART and the other half to tes
 
 ```{r set seed, echo = FALSE}
 
-set.seed(12)
+set.seed(9)
 
 ```
 
@@ -492,14 +492,13 @@ set.seed(12)
 
 ```
 
-The resulting tree shows that two criteria can help us tell nests apart from non-nests: (1) a location needs to be visited for at least 81% of the time on the day the attendance is maximum and for at least 17 consecutive days to be a nest; (2) or, if it does not satisfy this criterion, it has to be visited for at least 31 consecutive days. These criteria translate in the following sets of parameters:
+The resulting tree shows that two criteria can help us tell nests apart from non-nests: (1) a location needs to be visited for at least 81% of the time on the day the attendance is maximum and for at least 17 consecutive days to be a nest. These criteria translate in the following set of parameters:
 
 * `min_top_att >= 81`, `min_consec >= 17`
-* `min_consec >= 31`
 
 ### Step 3: Identifying nests among revisited locations {#step3}
 
-After having identified sets of parameter values that discriminate between nests and non-nests, we can make an informed decision on what values to use as input in the filtering arguments of `find_nests()`. Since the CART identified two sets of independent conditions, we can run `find_nests()` twice to obtain nests that respond to each set of criteria. In future versions of `nestR`, the user will be able to pass a list of filtering criteria to `find_nests()` and obtain all results at once. For now, let's go ahead and run the function on the original wood stork dataset with the first set of filtering parameters:
+After having identified one or more sets of parameter values that discriminate between nests and non-nests, we can make an informed decision on what values to use as input in the filtering arguments of `find_nests()`. Let's go ahead and run the function on the original wood stork dataset with the set of filtering parameter values suggested by the CART:
 
 ```{r find nests 1, eval = FALSE}
 
@@ -534,36 +533,7 @@ ws_output_2$nests
 
 Good news! The function identified the known nest correctly for both burst 1134370-2013 and 721290-2010. However, it also identified a second location for burst 1134370-2013. This looks like a second, probably failed, nesting attempt. We know that after leaving Rookery Branch, this wood stork migrated north to the Atlantic coast where its summer range is, and we cannot exclude that it attempted to nest a second time there. 
 
-Let's see what happens with the other set of parameters:
-
-```{r find nests 2, eval = FALSE}
-
-ws_output_3 <- find_nests(gps_data = woodstorks,
-                    sea_start = "11-01",
-                    sea_end = "08-31",
-                    nest_cycle = 110,
-                    buffer = 40,
-                    min_pts = 2,
-                    min_d_fix = 5,
-                    min_consec = 31,
-                    min_top_att = 1,
-                    min_days_att = 1,
-                    discard_overlapping = TRUE)
-
-ws_output_3$nests
-
-```
-
-```{r show output3 for real, echo = FALSE}
-
-data(ws_output_3)
-ws_output_3$nests
-
-```
-
-The correct (known) nests for 721290-2010 and 1134370-2013 were both returned. In this case, these two nests satisfied the criteria defined in both sets of filtering parameters. 
-
-We'll proceed with the output we obtained with the first set of parameters, including the two known nests and the plausible second attempt we found for 1134370-2013. The data on nesting attempts obtained as output of `find_nests()` will be the starting point for the second part of the workflow, where we will estimate reproductive outcome. 
+The data on nesting attempts obtained as output of `find_nests()` will be the starting point for the second part of the workflow, where we will estimate reproductive outcome. 
 
 ```{r merge outputs}
 
