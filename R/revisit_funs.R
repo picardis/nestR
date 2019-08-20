@@ -205,7 +205,7 @@ revisit_stats <- function(dat,
   # Number of fixes per day
   daily_fixes <- dat %>%
     group_by(reldate) %>%
-    summarize(n_fixes = n()) %>%
+    summarize(n_fixes = dplyr::n()) %>%
     dplyr::select(reldate, n_fixes) %>%
     arrange(reldate)
 
@@ -225,7 +225,7 @@ revisit_stats <- function(dat,
   # Total number of visits
   tot_visits <- sub %>%
     group_by(group_id) %>%
-    summarize(tot_vis = n())
+    summarize(tot_vis = dplyr::n())
 
   # Number of days visited
   days_visited <- sub %>%
@@ -245,7 +245,7 @@ revisit_stats <- function(dat,
   # Count daily visits
   daily_visits <- sub %>%
     group_by(group_id, reldate) %>%
-    summarize(n_visits = n())
+    summarize(n_visits = dplyr::n())
 
   # Create data.frame of the range of days a group_id appears
   group_id_range <- data.frame(group_id = rep(out$group_id, each=length(all_days)),
