@@ -340,7 +340,7 @@ compare_buffers <- function(gps_data,
   #Get rid of bursts that don't have at least 'min_consec' days of data
   enough <- gps_data %>%
     group_by(burst) %>%
-    summarize(days_data = length(unique(date(date)))) %>%
+    summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
     filter(days_data >= min_consec) %>%
     pull(burst)
   known_coords <- known_coords %>%
