@@ -18,7 +18,8 @@ Depends:
     shinydashboard,
     leaflet,
     kableExtra,
-    gridExtra
+    gridExtra,
+    purrr
 Imports: 
     forcats,
     rpart,
