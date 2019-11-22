@@ -294,7 +294,7 @@ compare_buffers <- function(gps_data,
   # Each file (per burst) is a list with an element per buffer.
   # Convert into a list with an element per buffer where each element is a data.frame for all bursts.
   files_buffers <- list.files(temp_name, pattern = "buffer_comparison_", full.names = TRUE)
-  buffercomp <- list(NA, NA)
+  buffercomp <- as.list(rep(NA, length.out = length(buffers)))
   for (f in files_buffers) {
     temp <- readRDS(f)
     buffercomp <- purrr::map2(buffercomp, temp, rbind)
