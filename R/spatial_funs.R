@@ -143,3 +143,88 @@ candidate_summary <- function(cands){
   # Return result
   return(cands)
 }
+
+#' Get top candidate nests from possible competitors (multiple buffers)
+#'
+#' \code{get_candidates_multi} is an adaptation of \code{\link{get_candidates}}
+#' for multiple buffers. It is called by \code{\link{compare_buffers}}.
+#'
+#' @param dmat Distance matrix returned by \code{\link{dist_mat}}
+#' @param buffers Vector of buffer size (in meters) used to group points
+#' @param min_pts Minimum number of points within the buffer for a point to be
+#' retained. Defaults to 2
+#' @return Returns a \code{list} of data frames relating original location identifiers
+#' (\code{loc_id}) to the identifier of the corresponding candidate nest
+#' (\code{group_id}) for each of the specified buffers.
+get_candidates_multi <- function(dmat, buffers, min_pts = 2){
+
+  # Create list to store results
+  cands_list <- list()
+
+  # For each buffer
+  for (j in 1:length(buffers)) {
+    # Pre-process distance matrix
+    dm <- dmat %>%
+      filter(dist <= buffers[j]) %>% # Keep just measurements less than the buffer
+      mutate(group_id = as.integer(NA)) # Initialize the group_id field which
+    # will be used to label points falling within the same buffer
+
+    # Remove "isolated" points, as defined by parameter 'min_pts'
+    iso <- dm %>%
+      group_by(orig_id) %>%
+      tally() %>%
+      filter(n < min_pts) %>%
+      pull(orig_id)
+    dm <- dm %>%
+      mutate(group_id =
+               case_when(
+                 orig_id %in% iso ~ orig_id,
+                 TRUE ~ as.integer(NA)
+               ))
+
+    # Loop while any 'group_id' is NA
+    # Select the single point with the most others inside its buffer
+    # Assign all of the points inside that buffer the group_id for that point
+    # Repeat for any unassigned
+    while (any(is.na(dm$group_id))) {
+
+      # Find the point with the most other points inside its buffer
+      top <- dm %>%
+        filter(is.na(group_id)) %>%
+        group_by(orig_id) %>%
+        tally() %>%
+        arrange(desc(n)) %>%
+        slice(1) %>%
+        pull(orig_id)
+
+      # Find all the other points inside that buffer
+      others <- dm %>%
+        filter(orig_id == top) %>%
+        pull(dest_id)
+
+      # Assign the group of 'top' to all origins in 'others'
+      dm <- dm %>%
+        mutate(group_id = case_when(
+          !is.na(group_id) ~ group_id,
+          orig_id %in% others ~ top,
+          TRUE ~ as.integer(NA)
+        ))
+    } # End while()
+
+    # Create data.frame with loc_id and the group_id it belongs in
+    cands <- dm %>%
+      dplyr::select(loc_id = orig_id, group_id) %>%
+      unique() %>%
+      arrange(loc_id)
+
+    # Save results for the current buffer
+    cands_list[[j]] <- cands
+
+  }
+
+  # Assign names of buffers to elements of list
+  names(cands_list) <- buffers
+
+  # Return the result
+  return(cands_list)
+}
