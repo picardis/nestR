@@ -4,7 +4,7 @@
 \alias{perf_metrics}
 \title{Compute nest-detection performance metrics}
 \usage{
-perf_metrics(gps_data, nest_info, known_coords, min_consec)
+perf_metrics(gps_data, nest_info, known_coords, min_consec, sp_tol = 100)
 }
 \arguments{
 \item{gps_data}{Original \code{data.frame} of movement data. Needs to include
@@ -17,11 +17,17 @@ to include burst, long, lat}
 
 \item{min_consec}{The minimum number of consecutive days visited that was
 used when running \code{find_nests}}
+
+\item{sp_tol}{Integer. Spatial tolerance value: maximum distance tolerated
+between the estimated location of a nest and its actual (known) location.
+Defaults to 100 meters.}
 }
 \description{
 \code{perf_metrics} calculates nest detection performance metrics
 based on the results of \code{\link{find_nests}} and data on known
-nest locations. The performance metrics are defined as follows:
+nest locations. The user defines the spatial tolerance threshold between
+the estimated location of a nest and its real (known) location. The
+performance metrics are defined as follows:
 }
 \details{
 \itemize{

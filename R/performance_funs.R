@@ -32,12 +32,18 @@
 #' is more appropriate based on the performance metrics. Regardless of
 #' whether data on known nest locations are provided, \code{compare_buffers}
 #' computes the total number of nests found for each buffer size as well as
-#' the number of nests found for each burst. If no data on true nests are
+#' the number of nests found for each burst. If the user provides data on known
+#' nests, they can also specify a value of spatial tolerance to use as a cutoff
+#' to establish whether a nest was correctly identified: since coordinates of
+#' detected nests rarely match exactly the actual (known) coordinates of the
+#' nest, users can define which distance between real and estimated location
+#' they are willing to accept at most. If no data on true nests are
 #' available, these numbers can provide an indication of whether a given
 #' buffer size likely results in over- or underestimation of the number of
 #' nests. \code{compare_buffers} takes almost exactly the same arguments as
 #' \code{\link{find_nests}}, except for the argument `buffer` which is here
-#' replaced with `buffers` and for the additional argument `known_coords`.
+#' replaced with `buffers` and for the additional arguments `known_coords`
+#' and `sp_tol`.
 #'
 #' @param gps_data \code{data.frame} of movement data. Needs to include burst,
 #' date, long, lat
@@ -59,6 +65,9 @@
 #' attempts, select only one among those? Defaults to \code{TRUE}.
 #' @param known_coords \code{data.frame} of coordinates for known nests. Needs
 #' to include burst, long, lat.
+#' @param sp_tol Integer. Spatial tolerance value: maximum distance tolerated
+#' between the estimated location of a nest and its actual (known) location.
+#' Defaults to 100 meters.
 #' @return Returns a \code{list} of variable length including:
 #'
 #' \itemize{
@@ -82,6 +91,7 @@
 compare_buffers <- function(gps_data,
                        buffers,
                        known_coords,
+                       sp_tol = 100,
                        min_pts,
                        sea_start,
                        sea_end,
@@ -356,7 +366,7 @@ compare_buffers <- function(gps_data,
     y <- x %>%
       left_join(known_coords, by = "burst") %>%
       mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
-      filter(dist <= 100) %>%
+      filter(dist <= sp_tol) %>%
       nrow()
     return(y)
   }))
@@ -424,7 +434,9 @@ compare_buffers <- function(gps_data,
 #'
 #' \code{perf_metrics} calculates nest detection performance metrics
 #' based on the results of \code{\link{find_nests}} and data on known
-#' nest locations. The performance metrics are defined as follows:
+#' nest locations. The user defines the spatial tolerance threshold between
+#' the estimated location of a nest and its real (known) location. The
+#' performance metrics are defined as follows:
 #'
 #' \itemize{
 #'
@@ -448,12 +460,16 @@ compare_buffers <- function(gps_data,
 #' to include burst, long, lat
 #' @param min_consec The minimum number of consecutive days visited that was
 #' used when running \code{find_nests}
+#' @param sp_tol Integer. Spatial tolerance value: maximum distance tolerated
+#' between the estimated location of a nest and its actual (known) location.
+#' Defaults to 100 meters.
 #'
 #' @export
 perf_metrics <- function(gps_data,
                          nest_info,
                          known_coords,
-                         min_consec){
+                         min_consec,
+                         sp_tol = 100){
 
   #Grab nests from output of find_nests()
   dat <- nest_info$nests
@@ -476,7 +492,7 @@ perf_metrics <- function(gps_data,
   ppv_num <- dat %>%
     left_join(known_coords, by = "burst") %>%
     mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
-    filter(dist <= 100) %>%
+    filter(dist <= sp_tol) %>%
     nrow()
   # Total number of nests found
   ppv_den <- dat %>%

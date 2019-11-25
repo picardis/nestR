@@ -4,9 +4,9 @@
 \alias{compare_buffers}
 \title{Perform sensitivity analysis of buffer size for nest detection}
 \usage{
-compare_buffers(gps_data, buffers, known_coords, min_pts, sea_start,
-  sea_end, nest_cycle, min_d_fix, min_consec, min_top_att, min_days_att,
-  discard_overlapping = TRUE)
+compare_buffers(gps_data, buffers, known_coords, sp_tol = 100, min_pts,
+  sea_start, sea_end, nest_cycle, min_d_fix, min_consec, min_top_att,
+  min_days_att, discard_overlapping = TRUE)
 }
 \arguments{
 \item{gps_data}{\code{data.frame} of movement data. Needs to include burst,
@@ -16,6 +16,10 @@ date, long, lat}
 
 \item{known_coords}{\code{data.frame} of coordinates for known nests. Needs
 to include burst, long, lat.}
+
+\item{sp_tol}{Integer. Spatial tolerance value: maximum distance tolerated
+between the estimated location of a nest and its actual (known) location.
+Defaults to 100 meters.}
 
 \item{min_pts}{Minimum number of points within a buffer}
 
@@ -94,10 +98,16 @@ is not reasonable in most situations. Users can evaluate which buffer size
 is more appropriate based on the performance metrics. Regardless of
 whether data on known nest locations are provided, \code{compare_buffers}
 computes the total number of nests found for each buffer size as well as
-the number of nests found for each burst. If no data on true nests are
+the number of nests found for each burst. If the user provides data on known
+nests, they can also specify a value of spatial tolerance to use as a cutoff
+to establish whether a nest was correctly identified: since coordinates of
+detected nests rarely match exactly the actual (known) coordinates of the
+nest, users can define which distance between real and estimated location
+they are willing to accept at most. If no data on true nests are
 available, these numbers can provide an indication of whether a given
 buffer size likely results in over- or underestimation of the number of
 nests. \code{compare_buffers} takes almost exactly the same arguments as
 \code{\link{find_nests}}, except for the argument `buffer` which is here
-replaced with `buffers` and for the additional argument `known_coords`.
+replaced with `buffers` and for the additional arguments `known_coords`
+and `sp_tol`.
 }
