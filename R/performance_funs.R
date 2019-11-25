@@ -284,9 +284,9 @@ compare_buffers <- function(gps_data,
     # Store results for the current buffer
     res_buffer[[k]] <- nests
 
-    }
+    names(res_buffer[k]) <- buffers[k]
 
-    names(res_buffer) <- buffers
+    }
 
     cat("\nProcess completed!\n\n")
 
