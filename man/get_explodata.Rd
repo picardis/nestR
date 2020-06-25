@@ -4,8 +4,13 @@
 \alias{get_explodata}
 \title{Extract nests and non-nests from revisited locations}
 \usage{
-get_explodata(candidate_nests, known_coords, known_ids, buffer,
-  pick_overlapping = TRUE)
+get_explodata(
+  candidate_nests,
+  known_coords,
+  known_ids,
+  buffer,
+  pick_overlapping = TRUE
+)
 }
 \arguments{
 \item{candidate_nests}{\code{data.frame} of candidate nests output by

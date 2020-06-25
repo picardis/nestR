@@ -3,7 +3,6 @@
 \docType{package}
 \name{foo}
 \alias{foo}
-\alias{foo-package}
 \title{foo: A package for computating the notorious bar statistic.}
 \description{
 The foo package provides three categories of important functions:

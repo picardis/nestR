@@ -1,9 +1,9 @@
 {
-    "path" : "~/Documents/PhD/Packages/nestR/vignettes",
-    "sortOrder" : [
+    "path": "~/Documents/PhD/Packages/nestR",
+    "sortOrder": [
         {
-            "ascending" : true,
-            "columnIndex" : 2
+            "columnIndex": 2,
+            "ascending": true
         }
     ]
 }

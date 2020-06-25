@@ -2,8 +2,8 @@ Package: nestR
 Type: Package
 Title: Estimation of Bird Nesting from Tracking Data
 Version: 1.1.0
-Authors@R: c(person("Simona", "Picardi", email = "simona.picardi@ufl.edu", role = c("aut", "cre")), person("Brian", "Smith", email = "bsmity13@gmail.com", role = c("aut")), person("Matthew", "Boone", email = "m.boone@ufl.edu", role = c("aut")), person("Mathieu", "Basille", email = "basille@ufl.edu", role = c("aut")))
-Maintainers@R: person("Simona", "Picardi", email = "simona.picardi@ufl.edu", role = c("aut", "cre"))
+Authors@R: c(person("Simona", "Picardi", email = "simona.picardi@usu.edu", role = c("aut", "cre")), person("Brian", "Smith", email = "bsmity13@gmail.com", role = c("aut")), person("Matthew", "Boone", email = "m.boone@ufl.edu", role = c("aut")), person("Mathieu", "Basille", email = "basille@ufl.edu", role = c("aut")))
+Maintainers@R: person("Simona", "Picardi", email = "simona.picardi@usu.edu", role = c("aut", "cre"))
 Description: A package to locate nests and estimate avian reproductive outcome from GPS-tracking data. It includes functions to identify nest sites along bird movement trajectories based on patterns of location revisitation, dynamically explore results, estimate the outcome of identified nesting attempts, and plot and summarize outputs. 
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -24,7 +24,7 @@ Imports:
     forcats,
     rpart,
     rpart.plot
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Suggests: 
     knitr,
     rmarkdown

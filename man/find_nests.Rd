@@ -4,9 +4,19 @@
 \alias{find_nests}
 \title{Find nest locations from GPS data}
 \usage{
-find_nests(gps_data, buffer, min_pts, sea_start, sea_end, nest_cycle,
-  min_d_fix, min_consec, min_top_att, min_days_att,
-  discard_overlapping = TRUE)
+find_nests(
+  gps_data,
+  buffer,
+  min_pts,
+  sea_start,
+  sea_end,
+  nest_cycle,
+  min_d_fix,
+  min_consec,
+  min_top_att,
+  min_days_att,
+  discard_overlapping = TRUE
+)
 }
 \arguments{
 \item{gps_data}{\code{data.frame} of movement data. Needs to include burst,

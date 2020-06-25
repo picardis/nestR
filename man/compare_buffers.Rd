@@ -4,9 +4,21 @@
 \alias{compare_buffers}
 \title{Perform sensitivity analysis of buffer size for nest detection}
 \usage{
-compare_buffers(gps_data, buffers, known_coords, sp_tol = 100, min_pts,
-  sea_start, sea_end, nest_cycle, min_d_fix, min_consec, min_top_att,
-  min_days_att, discard_overlapping = TRUE)
+compare_buffers(
+  gps_data,
+  buffers,
+  known_coords,
+  sp_tol = 100,
+  min_pts,
+  sea_start,
+  sea_end,
+  nest_cycle,
+  min_d_fix,
+  min_consec,
+  min_top_att,
+  min_days_att,
+  discard_overlapping = TRUE
+)
 }
 \arguments{
 \item{gps_data}{\code{data.frame} of movement data. Needs to include burst,
