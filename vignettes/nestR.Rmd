@@ -711,7 +711,7 @@ ws_pb0_coda <- coda::as.mcmc.list(ws_outcomes$p.b0)
 ws_pb1_coda <- coda::as.mcmc.list(ws_outcomes$p.b1)
 
 coda:::plot.mcmc.list(ws_pb0_coda)
-coda:::plot.mcmc.listplot(ws_pb1_coda)
+coda:::plot.mcmc.list(ws_pb1_coda)
 
 ```
 
