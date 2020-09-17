@@ -705,13 +705,13 @@ summarize_outcomes(ws_outcomes, ci = 0.95)
 The `coda` diagnostics are available after converting the output of `estimate_outcomes()` into `mcmc.list`. For example, if you wanted to look at the diagnostic plots for the $\beta$ parameters on detection ($p$):
 
 ```{r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
-# library(coda)
-# 
-# ws_pb0_coda <- as.mcmc.list(ws_outcomes$p.b0)
-# ws_pb1_coda <- as.mcmc.list(ws_outcomes$p.b1)
-# 
-# plot(ws_pb0_coda)
-# plot(ws_pb1_coda)
+library(coda)
+
+ws_pb0_coda <- coda::as.mcmc.list(ws_outcomes$p.b0)
+ws_pb1_coda <- coda::as.mcmc.list(ws_outcomes$p.b1)
+
+coda:::plot.mcmc.list(ws_pb0_coda)
+coda:::plot.mcmc.listplot(ws_pb1_coda)
 
 ```
 
@@ -742,14 +742,18 @@ Here are the results for the first kestrel:
 
 ```{r show output 1, eval = FALSE}
 
-lk_output_1$nests %>% filter(burst == "16680-2017") %>% head()
+lk_output_1$nests %>% 
+  filter(burst == "16680-2017") %>% 
+  head()
 
 ```
 
 ```{r kestrels load output 1, echo = FALSE}
 
 data(lk_output_1)
-lk_output_1$nests %>% filter(burst == "16680-2017") %>% head()
+lk_output_1$nests %>% 
+  filter(burst == "16680-2017") %>% 
+  head()
 
 ```
 
@@ -757,7 +761,9 @@ Here are the results for the second kestrel:
 
 ```{r kestrel other burst}
 
-lk_output_1$nests %>% filter(burst == "16682-2017") %>% head()
+lk_output_1$nests %>% 
+  filter(burst == "16682-2017") %>% 
+  head()
 
 ```
 
@@ -884,7 +890,9 @@ Here is the output for the first gull:
 
 ```{r show gull output 1, eval = FALSE}
 
-mg_output_1$nests %>% filter(burst == "URI05-2016") %>% head()
+mg_output_1$nests %>% 
+  filter(burst == "URI05-2016") %>% 
+  head()
 
 ```
 
@@ -892,7 +900,9 @@ mg_output_1$nests %>% filter(burst == "URI05-2016") %>% head()
 ```{r gulls load output 1, echo = FALSE}
 
 data(mg_output_1)
-mg_output_1$nests %>% filter(burst == "URI05-2016") %>% head()
+mg_output_1$nests %>% 
+  filter(burst == "URI05-2016") %>% 
+  head()
 
 ```
 
@@ -900,7 +910,9 @@ And here is the output for the second gull:
 
 ```{r gulls other burst}
 
-mg_output_1$nests %>% filter(burst == "URI29-2016") %>% head()
+mg_output_1$nests %>% 
+  filter(burst == "URI29-2016") %>% 
+  head()
 
 ```
 
