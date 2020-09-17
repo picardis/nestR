@@ -37,7 +37,6 @@ suppressWarnings({
   suppressPackageStartupMessages({
     library(kableExtra)
     library(gridExtra)
-    library(dplyr)
   })
 })
 
@@ -128,6 +127,12 @@ head(woodstorks)
 # Data structure 
 str(woodstorks)
 
+```
+
+We will also load a few other useful packages for use throughout this vignette:
+
+```{r load packages}
+library(dplyr)
 ```
 
 ## Part I: Finding nest locations {#part1}
