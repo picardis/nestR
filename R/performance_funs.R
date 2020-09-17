@@ -485,7 +485,7 @@ perf_metrics <- function(gps_data,
   #Get rid of bursts that don't have at least 'min_consec' days of data
   enough <- gps_data %>%
     dplyr::group_by(burst) %>%
-    dplyr::summarize(days_data = length(unique(date(date)))) %>%
+    dplyr::summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
     dplyr::filter(days_data >= min_consec) %>%
     dplyr::pull(burst)
   known_coords <- known_coords %>%
