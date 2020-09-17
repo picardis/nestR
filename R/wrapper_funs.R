@@ -275,9 +275,9 @@ find_nests <- function(gps_data,
              perc_top_vis >= min_top_att) %>%
       dplyr::left_join(dplyr::select(dat, loc_id, long, lat),
                        by = c("group_id" = "loc_id")) %>%
-      dplyr::mutate(attempt_start = ymd(dates_out$actual_start) +
+      dplyr::mutate(attempt_start = lubridate::ymd(dates_out$actual_start) +
                       attempt_start) %>%
-      dplyr::mutate(attempt_end = ymd(dates_out$actual_start) +
+      dplyr::mutate(attempt_end = lubridate::ymd(dates_out$actual_start) +
                attempt_end) %>%
       dplyr::mutate(burst = burst_id) %>%
       dplyr::select(burst,
