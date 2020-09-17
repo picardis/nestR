@@ -214,10 +214,12 @@ revisit_stats <- function(dat,
   # Day of first and last visit
   first_vis <- sub %>%
     dplyr::group_by(group_id) %>%
-    dplyr::summarize(first_date=as_date(min(date)), first_reldate=min(reldate))
+    dplyr::summarize(first_date = lubridate::as_date(min(date)),
+                     first_reldate = min(reldate))
   last_vis <- sub %>%
     dplyr::group_by(group_id) %>%
-    dplyr::summarize(last_date=as_date(max(date)), last_reldate=max(reldate))
+    dplyr::summarize(last_date= lubridate::as_date(max(date)),
+                     last_reldate = max(reldate))
 
   # Join to output
   out <- out %>%
