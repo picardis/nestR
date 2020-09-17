@@ -12,6 +12,9 @@
 #' @name nestR
 NULL
 
+#Import namespaces
+#' @import data.table
+
 #Exports from other packages:
 #' @export
 magrittr::`%>%`
