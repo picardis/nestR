@@ -259,8 +259,10 @@ revisit_stats <- function(dat,
   ) %>%
     dplyr::left_join(first_vis, by = "group_id") %>%
     dplyr::left_join(last_vis, by = "group_id") %>%
+    dplyr::rowwise() %>%
     dplyr::filter(dplyr::between(reldate, first_reldate, last_reldate)) %>%
-    dplyr::select(group_id, reldate)
+    dplyr::select(group_id, reldate) %>%
+    dplyr::ungroup()
 
   # Combine with daily_visits
   daily_visits <- group_id_range %>%
