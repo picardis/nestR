@@ -128,7 +128,7 @@ compare_buffers <- function(gps_data,
     cat(paste0("Burst ", i, " of ", length(bursts), "\n"))
 
     dat <- gps_data %>%
-      filter(burst==burst_id)
+      dplyr::filter(burst==burst_id)
 
     # Print current burst
     cat("****************************\n")
@@ -137,8 +137,8 @@ compare_buffers <- function(gps_data,
 
     # Order by date and assign location id
     dat <- dat %>%
-      arrange(date) %>%
-      mutate(loc_id = 1:nrow(.)) %>%
+      dplyr::arrange(date) %>%
+      dplyr::mutate(loc_id = 1:nrow(.)) %>%
       dplyr::select(loc_id, everything())
 
     # Handle dates
@@ -197,19 +197,19 @@ compare_buffers <- function(gps_data,
     cands_count <- candidate_summary(cands = cands_list[[k]])
 
     # Join group ID back to the original data
-    dat_buff <- left_join(dat, cands_list[[k]], by = "loc_id")
+    dat_buff <- dplyr::left_join(dat, cands_list[[k]], by = "loc_id")
 
     # Save computation time: discard group IDs that appear on < 2 days
     keepers <- dat_buff %>%
-      group_by(group_id, reldate) %>%
-      tally() %>%
-      filter(n >= 2) %>%
-      pull(group_id) %>%
+      dplyr::group_by(group_id, reldate) %>%
+      dplyr::tally() %>%
+      dplyr::filter(n >= 2) %>%
+      dplyr::pull(group_id) %>%
       unique()
 
     # Subset data for group_ids of interest
     sub <- dat_buff %>%
-      filter(group_id %in% keepers)
+      dplyr::filter(group_id %in% keepers)
 
     # Handle cases where there are no keepers
     if (nrow(sub) == 0) {
@@ -238,15 +238,18 @@ compare_buffers <- function(gps_data,
 
     # Filter group_ids that satisfy input criteria and add coordinates
     nests <- daily_stats %>%
-      filter(!is.na(attempt_start),
+      dplyr::filter(!is.na(attempt_start),
              !is.na(attempt_end),
              consec_days >= min_consec,
              perc_days_vis >= min_days_att,
              perc_top_vis >= min_top_att) %>%
-      left_join(dplyr::select(dat_buff, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-      mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
-      mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
-      mutate(burst = burst_id) %>%
+      dplyr::left_join(dplyr::select(dat_buff, loc_id, long, lat),
+                       by = c("group_id" = "loc_id")) %>%
+      dplyr::mutate(attempt_start = ymd(dates_out$actual_start) +
+                      attempt_start) %>%
+      dplyr::mutate(attempt_end = ymd(dates_out$actual_start) +
+                      attempt_end) %>%
+      dplyr::mutate(burst = burst_id) %>%
       dplyr::select(burst,
                     loc_id = group_id,
                     long,
@@ -260,7 +263,7 @@ compare_buffers <- function(gps_data,
                     consec_days,
                     perc_days_vis,
                     perc_top_vis) %>%
-      arrange(desc(tot_vis))
+      dplyr::arrange(desc(tot_vis))
 
     # Handle cases where no nests passed the filter
     if (nrow(sub) == 0) {
@@ -322,7 +325,8 @@ compare_buffers <- function(gps_data,
   #Total number of nests
   tot_nests <- data.frame()
   for (n in 1:(length(buffercomp))) {
-    temp <- cbind.data.frame(buffer_size = names(buffercomp[n]), n = nrow(buffercomp[[n]]))
+    temp <- cbind.data.frame(buffer_size = names(buffercomp[n]),
+                             n = nrow(buffercomp[[n]]))
     tot_nests <- rbind(tot_nests, temp)
   }
 
@@ -330,13 +334,13 @@ compare_buffers <- function(gps_data,
   nests_per_ind <- data.frame()
   for (n in 1:(length(buffercomp))) {
     temp <- buffercomp[[n]] %>%
-      group_by(burst) %>%
-      tally() %>%
+      dplyr::group_by(burst) %>%
+      dplyr::tally() %>%
       as.data.frame() %>%
       cbind(buffer_size = names(buffercomp[n])) %>%
       dplyr::select(burst, buffer_size, n)
     nests_per_ind <- rbind(nests_per_ind, temp) %>%
-      arrange(burst)
+      dplyr::arrange(burst)
   }
 
   #If known nests are provided, also return performance metrics
@@ -349,12 +353,12 @@ compare_buffers <- function(gps_data,
 
   #Get rid of bursts that don't have at least 'min_consec' days of data
   enough <- gps_data %>%
-    group_by(burst) %>%
-    summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
-    filter(days_data >= min_consec) %>%
-    pull(burst)
+    dplyr::group_by(burst) %>%
+    dplyr::summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
+    dplyr::filter(days_data >= min_consec) %>%
+    dplyr::pull(burst)
   known_coords <- known_coords %>%
-    filter(burst %in% enough)
+    dplyr::filter(burst %in% enough)
   buffercomp_copy <- lapply(buffercomp, FUN = function(x){
     y <- x[x$burst %in% enough,]
     return(y)
@@ -364,16 +368,17 @@ compare_buffers <- function(gps_data,
   # Number of known nests found
   ppv_num <- unlist(lapply(buffercomp_copy, FUN = function(x) {
     y <- x %>%
-      left_join(known_coords, by = "burst") %>%
-      mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
-      filter(dist <= sp_tol) %>%
+      dplyr::left_join(known_coords, by = "burst") %>%
+      dplyr::mutate(dist = geosphere::distGeo(cbind(true_long, true_lat),
+                                              cbind(long, lat))) %>%
+      dplyr::filter(dist <= sp_tol) %>%
       nrow()
     return(y)
   }))
   # Total number of nests found
   ppv_den <- unlist(lapply(buffercomp_copy, FUN = function(x) {
     y <- x %>%
-      filter(burst %in% known_coords$burst) %>%
+      dplyr::filter(burst %in% known_coords$burst) %>%
       nrow()}))
   # PPV
   ppv <- data.frame(ppv = ppv_num/ppv_den*100)
@@ -479,24 +484,24 @@ perf_metrics <- function(gps_data,
 
   #Get rid of bursts that don't have at least 'min_consec' days of data
   enough <- gps_data %>%
-    group_by(burst) %>%
-    summarize(days_data = length(unique(date(date)))) %>%
-    filter(days_data >= min_consec) %>%
-    pull(burst)
+    dplyr::group_by(burst) %>%
+    dplyr::summarize(days_data = length(unique(date(date)))) %>%
+    dplyr::filter(days_data >= min_consec) %>%
+    dplyr::pull(burst)
   known_coords <- known_coords %>%
-    filter(burst %in% enough)
+    dplyr::filter(burst %in% enough)
   dat_copy <- dat[dat$burst %in% enough,]
 
   #Positive predictive value
   # Number of known nests found
   ppv_num <- dat %>%
-    left_join(known_coords, by = "burst") %>%
-    mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
-    filter(dist <= sp_tol) %>%
+    dplyr::left_join(known_coords, by = "burst") %>%
+    dplyr::mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
+    dplyr::filter(dist <= sp_tol) %>%
     nrow()
   # Total number of nests found
   ppv_den <- dat %>%
-    filter(burst %in% known_coords$burst) %>%
+    dplyr::filter(burst %in% known_coords$burst) %>%
     nrow()
   # PPV
   ppv <- ppv_num/ppv_den*100

@@ -62,7 +62,7 @@ date_handler <- function(dat, sea_start, sea_end) {
 
   #Remove any data not within the breeding limits
   dat <- dat %>%
-    filter(date >= start_dummy & date <= end_dummy)
+    dplyr::filter(date >= start_dummy & date <= end_dummy)
 
   # Return the data and the actual season start and end
   return(list(dat = dat,

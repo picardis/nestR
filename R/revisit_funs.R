@@ -15,7 +15,7 @@ visit_rle <- function(x){
   # Convert to data.frame
   rl_df <- data.frame(lengths=rl$lengths, values=rl$values,
                       end = cumsum(rl$lengths)) %>%
-    mutate(start = end - lengths + 1) %>%
+    dplyr::mutate(start = end - lengths + 1) %>%
     dplyr::select(lengths, values, start, end)
   return(rl_df)
 }
@@ -33,8 +33,8 @@ visit_rle <- function(x){
 #' nest was visited.
 rle_to_consec <- function(rl_df) {
   rl_df <- rl_df  %>%
-    filter(values) %>%
-    filter(lengths == max(lengths))
+    dplyr::filter(values) %>%
+    dplyr::filter(lengths == max(lengths))
   return(max(rl_df$lengths))
 }
 
@@ -82,8 +82,8 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 
   # Find the starting point of the moving window
   mw_start_check <- rl_df %>%
-    filter(values) %>%
-    filter(lengths >= min_consec)
+    dplyr::filter(values) %>%
+    dplyr::filter(lengths >= min_consec)
 
   # If there are no durations > min_consec, return NAs for this group_id
   if(nrow(mw_start_check) == 0){
@@ -94,7 +94,7 @@ attempt_limits <- function(x, min_consec, nest_cycle){
   }
 
   mw_start_ind <- mw_start_check %>%
-    pull(start) %>%
+    dplyr::pull(start) %>%
     min()
 
   # Get the corresponding reldate
@@ -107,12 +107,12 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 
   # Initialize results data.frame
   mw_res <- data.frame(group_id = unique(x$group_id), attempt_start = mw_start) %>%
-    mutate(attempt_end = attempt_start + nest_cycle - 1)
+    dplyr::mutate(attempt_end = attempt_start + nest_cycle - 1)
 
   # Number of visits in initial window
   mw_res$n_visits <- x %>%
-    filter(between(reldate, mw_res$attempt_start, mw_res$attempt_end)) %>%
-    pull(n_visits) %>%
+    dplyr::filter(between(reldate, mw_res$attempt_start, mw_res$attempt_end)) %>%
+    dplyr::pull(n_visits) %>%
     sum()
 
   # Check to see if window can be slid at all
@@ -120,7 +120,7 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 
     # Set attempt_end to the final day
     mw_res <- mw_res %>%
-      mutate(attempt_end = max_reldate)
+      dplyr::mutate(attempt_end = max_reldate)
     #Return the result
     return(mw_res)
 
@@ -130,13 +130,15 @@ attempt_limits <- function(x, min_consec, nest_cycle){
     while (max(mw_res$attempt_end) < max_reldate){
       # Prepare new row
       mw_newrow <- last(mw_res) %>%
-        mutate(attempt_start = attempt_start + 1,
+        dplyr::mutate(attempt_start = attempt_start + 1,
                attempt_end = attempt_end + 1,
                n_visits = NA)
       # Calculate the number of visits
       mw_newrow$n_visits <- x %>%
-        filter(between(reldate, mw_newrow$attempt_start, mw_newrow$attempt_end)) %>%
-        pull(n_visits) %>%
+        dplyr::filter(between(reldate,
+                              mw_newrow$attempt_start,
+                              mw_newrow$attempt_end)) %>%
+        dplyr::pull(n_visits) %>%
         sum()
       # Combine results
       mw_res <- rbind(mw_res, mw_newrow)
@@ -144,8 +146,8 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 
     # Now pick the window with the maximum number of visits
     mw_res <- mw_res %>%
-      filter(n_visits == max(n_visits)) %>%
-      slice(1)
+      dplyr::filter(n_visits == max(n_visits)) %>%
+      dplyr::slice(1)
 
     #Return result
     return(mw_res)
@@ -204,87 +206,89 @@ revisit_stats <- function(dat,
 
   # Number of fixes per day
   daily_fixes <- dat %>%
-    group_by(reldate) %>%
-    summarize(n_fixes = dplyr::n()) %>%
+    dplyr::group_by(reldate) %>%
+    dplyr::summarize(n_fixes = dplyr::n()) %>%
     dplyr::select(reldate, n_fixes) %>%
-    arrange(reldate)
+    dplyr::arrange(reldate)
 
   # Day of first and last visit
   first_vis <- sub %>%
-    group_by(group_id) %>%
-    summarize(first_date=as_date(min(date)), first_reldate=min(reldate))
+    dplyr::group_by(group_id) %>%
+    dplyr::summarize(first_date=as_date(min(date)), first_reldate=min(reldate))
   last_vis <- sub %>%
-    group_by(group_id) %>%
-    summarize(last_date=as_date(max(date)), last_reldate=max(reldate))
+    dplyr::group_by(group_id) %>%
+    dplyr::summarize(last_date=as_date(max(date)), last_reldate=max(reldate))
 
   # Join to output
   out <- out %>%
-    left_join(first_vis, by = "group_id") %>%
-    left_join(last_vis, by = "group_id")
+    dplyr::left_join(first_vis, by = "group_id") %>%
+    dplyr::left_join(last_vis, by = "group_id")
 
   # Total number of visits
   tot_visits <- sub %>%
-    group_by(group_id) %>%
-    summarize(tot_vis = dplyr::n())
+    dplyr::group_by(group_id) %>%
+    dplyr::summarize(tot_vis = dplyr::n())
 
   # Number of days visited
   days_visited <- sub %>%
-    group_by(group_id) %>%
-    summarize(days_vis = n_distinct(reldate))
+    dplyr::group_by(group_id) %>%
+    dplyr::summarize(days_vis = n_distinct(reldate))
 
   #Join to output
   out <- out %>%
-    left_join(tot_visits, by = "group_id") %>%
-    left_join(days_visited, by = "group_id")
+    dplyr::left_join(tot_visits, by = "group_id") %>%
+    dplyr::left_join(days_visited, by = "group_id")
 
   # Percent days visited between first and last
   out <- out %>%
-    mutate(perc_days_vis =
+    dplyr::mutate(perc_days_vis =
              round(days_vis*100/(last_reldate - first_reldate + 1), 2))
 
   # Count daily visits
   daily_visits <- sub %>%
-    group_by(group_id, reldate) %>%
-    summarize(n_visits = dplyr::n())
+    dplyr::group_by(group_id, reldate) %>%
+    dplyr::summarize(n_visits = dplyr::n())
 
   # Create data.frame of the range of days a group_id appears
-  group_id_range <- data.frame(group_id = rep(out$group_id, each=length(all_days)),
-                               reldate = rep(0:max(sub$reldate), length(out$group_id))
+  group_id_range <- data.frame(group_id = rep(out$group_id,
+                                              each=length(all_days)),
+                               reldate = rep(0:max(sub$reldate),
+                                             length(out$group_id))
   ) %>%
-    left_join(first_vis, by = "group_id") %>%
-    left_join(last_vis, by = "group_id") %>%
-    filter(between(reldate, first_reldate, last_reldate)) %>%
+    dplyr::left_join(first_vis, by = "group_id") %>%
+    dplyr::left_join(last_vis, by = "group_id") %>%
+    dplyr::filter(dplyr::between(reldate, first_reldate, last_reldate)) %>%
     dplyr::select(group_id, reldate)
 
   # Combine with daily_visits
   daily_visits <- group_id_range %>%
-    left_join(daily_visits, by = c("group_id", "reldate")) %>%
-    mutate(n_visits = case_when(
+    dplyr::left_join(daily_visits, by = c("group_id", "reldate")) %>%
+    dplyr::mutate(n_visits = dplyr::case_when(
       is.na(n_visits) ~ 0L,
       TRUE ~ n_visits
     )) %>%
-    left_join(daily_fixes, by = "reldate") %>%
-    mutate(n_fixes = case_when(
+    dplyr::left_join(daily_fixes, by = "reldate") %>%
+    dplyr::mutate(n_fixes = dplyr::case_when(
       is.na(n_fixes) ~ 0L,
       TRUE ~ n_fixes
     ))
 
   # Find day with most visits
   top_day_visits <- daily_visits %>%
-    group_by(group_id) %>%
-    filter(n_visits == max(n_visits)) %>%
-    mutate(percent_vis = round(n_visits*100/n_fixes, 2)) %>%
-    summarize(perc_top_vis = max(percent_vis))
+    dplyr::group_by(group_id) %>%
+    dplyr::filter(n_visits == max(n_visits)) %>%
+    dplyr::mutate(percent_vis = round(n_visits*100/n_fixes, 2)) %>%
+    dplyr::summarize(perc_top_vis = max(percent_vis))
 
   # Join with output
   out <- out %>%
-    left_join(top_day_visits, by = "group_id")
+    dplyr::left_join(top_day_visits, by = "group_id")
 
   # For calculating consecutive visits, drop any days without the
   # minimum number of required fixes where a visit is not recorded
   filtered_dv <- daily_visits %>%
-    filter(n_visits > 0 | n_fixes >= min_d_fix) %>%
-    mutate(visited = n_visits > 0)
+    dplyr::filter(n_visits > 0 | n_fixes >= min_d_fix) %>%
+    dplyr::mutate(visited = n_visits > 0)
 
   # For each group_id, calculate the maximum number of consecutive days with a visit
   # Split into list by group_id
@@ -299,17 +303,17 @@ revisit_stats <- function(dat,
 
   # Join with output
   out <- out %>%
-    left_join(consec_days, by = "group_id")
+    dplyr::left_join(consec_days, by = "group_id")
 
   # Compute start and end dates of nesting attempt
   start_end <- lapply(filtered_list, attempt_limits,
                       min_consec = min_consec,
                       nest_cycle = nest_cycle) %>%
-    bind_rows()
+    dplyr::bind_rows()
 
   # Join with output
   out <- out %>%
-    left_join(start_end, by = "group_id")
+    dplyr::left_join(start_end, by = "group_id")
 
   # Return output
   return(out)
@@ -348,27 +352,31 @@ choose_overlapping <- function(attempts) {
 
       current <- discard_df$loc_id[1]
       current_start <- attempts %>%
-        filter(loc_id == current) %>%
-        pull(attempt_start)
+        dplyr::filter(loc_id == current) %>%
+        dplyr::pull(attempt_start)
       current_end <- attempts %>%
-        filter(loc_id == current) %>%
-        pull(attempt_end)
+        dplyr::filter(loc_id == current) %>%
+        dplyr::pull(attempt_end)
 
       toss <- attempts %>%
-        filter((between(attempt_start, current_start, current_end) |
-                  between(attempt_end, current_start, current_end)) &
+        dplyr::filter((dplyr::between(attempt_start,
+                                      current_start,
+                                      current_end) |
+                         dplyr::between(attempt_end,
+                                        current_start,
+                                        current_end)) &
                  loc_id != current) %>%
-        pull(loc_id)
+        dplyr::pull(loc_id)
 
       attempts <- attempts %>%
-        filter(!(loc_id %in% toss))
+        dplyr::filter(!(loc_id %in% toss))
 
       discard_df <- discard_df %>%
-        mutate(keep = case_when(
+        dplyr::mutate(keep = dplyr::case_when(
           loc_id %in% toss ~ FALSE,
           TRUE ~ keep
         )) %>%
-        filter(is.na(keep))
+        dplyr::filter(is.na(keep))
     }
 
     return(attempts)
