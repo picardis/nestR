@@ -37,6 +37,7 @@ suppressWarnings({
   suppressPackageStartupMessages({
     library(kableExtra)
     library(gridExtra)
+    library(dplyr)
   })
 })
 
