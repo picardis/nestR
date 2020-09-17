@@ -82,18 +82,19 @@ format_attempts <- function(nest_info,
 
     # Count daily fixes within attempt
     fix <- visits %>%
-      dplyr::group_by(date = as_date(date)) %>%
+      dplyr::group_by(date = lubridate::as_date(date)) %>%
       dplyr::tally()
 
     # Count daily visits within attempt
     vis <- visits %>%
       dplyr::filter(loc_id == att$loc_id) %>%
-      dplyr::group_by(date = as_date(date)) %>%
+      dplyr::group_by(date = lubridate::as_date(date)) %>%
       dplyr::tally()
 
     # Initialize visit history
     history <- data.frame(
-      date = as_date(att$attempt_start:(att$attempt_start + nest_cycle - 1)))
+      date = lubridate::as_date(
+        att$attempt_start:(att$attempt_start + nest_cycle - 1)))
 
     # Join n of fixes and visits
     history <- dplyr::left_join(history, fix, by = "date")
