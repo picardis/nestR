@@ -15,5 +15,3 @@ NULL
 #Exports from other packages:
 #' @export
 magrittr::`%>%`
-#' @export
-data.table::`:=`

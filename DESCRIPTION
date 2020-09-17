@@ -10,12 +10,11 @@ Encoding: UTF-8
 LazyData: true
 Depends:
     R (>= 3.5),
+    data.table,
 Imports: 
     dplyr,
     lubridate,
-    data.table,
     geosphere,
-    rjags,
     shiny,
     shinydashboard,
     leaflet,
