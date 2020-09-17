@@ -8,7 +8,7 @@ The nestR package includes functions to (1) identify nesting locations along bir
 
 To install the current version of nestR:
   
-`remotes::install_github("picardis/nestR", build_opts = "")`
+`remotes::install_github("picardis/nestR", build_vignettes = TRUE)`
 
 ## Contribution Instructions
 
