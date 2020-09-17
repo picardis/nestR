@@ -1,11 +1,10 @@
-#' foo: A package for computating the notorious bar statistic.
-#'
-#' The foo package provides three categories of important functions:
-#' foo, bar and baz.
-#'
-#' @section Foo functions:
-#' The foo functions ...
+#' nestR: A package Analysis of movement recursions to detect reproductive events
+#' and estimate their fate in central place foragers.
 #'
 #' @docType package
-#' @name foo
+#' @name nestR
 NULL
+
+#Exports from other packages:
+#' @export
+magrittr::`%>%`
