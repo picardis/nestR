@@ -38,16 +38,16 @@ date_handler <- function(dat, sea_start, sea_end) {
   lubridate::year(end_dummy) <- e_year
 
   # Overwrite month
-  month(start_dummy) <- lubridate::month(sea_start)
+  lubridate::month(start_dummy) <- lubridate::month(sea_start)
 
   # Overwrite day
-  day(start_dummy) <- lubridate::day(sea_start)
+  lubridate::day(start_dummy) <- lubridate::day(sea_start)
 
   # Overwrite month
-  month(end_dummy) <- lubridate::month(sea_end)
+  lubridate::month(end_dummy) <- lubridate::month(sea_end)
 
   # Overwrite day
-  day(end_dummy) <- lubridate::day(sea_end)
+  lubridate::day(end_dummy) <- lubridate::day(sea_end)
 
   # Now deal with the case where the wrong year was assigned --
   # see comment above
