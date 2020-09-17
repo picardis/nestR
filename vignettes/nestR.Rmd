@@ -705,13 +705,13 @@ summarize_outcomes(ws_outcomes, ci = 0.95)
 The `coda` diagnostics are available after converting the output of `estimate_outcomes()` into `mcmc.list`. For example, if you wanted to look at the diagnostic plots for the $\beta$ parameters on detection ($p$):
 
 ```{r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
-library(coda)
-
-ws_pb0_coda <- as.mcmc.list(ws_outcomes$p.b0)
-ws_pb1_coda <- as.mcmc.list(ws_outcomes$p.b1)
-
-plot(ws_pb0_coda)
-plot(ws_pb1_coda)
+# library(coda)
+# 
+# ws_pb0_coda <- as.mcmc.list(ws_outcomes$p.b0)
+# ws_pb1_coda <- as.mcmc.list(ws_outcomes$p.b1)
+# 
+# plot(ws_pb0_coda)
+# plot(ws_pb1_coda)
 
 ```
 
