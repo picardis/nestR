@@ -96,7 +96,7 @@ estimate_outcomes <- function(fixes,
                      n.adapt = mcmc_params$n_adapt)
 
   #Run the burn-in
-  rjags::update.jags(object = jags, n.iter = mcmc_params$burn_in)
+  rjags:::update.jags(object = jags, n.iter = mcmc_params$burn_in)
 
   #Generate posterior samples
   post <- rjags::jags.samples(model = jags,
