@@ -296,7 +296,7 @@ find_nests <- function(gps_data,
       dplyr::arrange(dplyr::desc(tot_vis))
 
     # Handle cases where no nests passed the filter
-    if (nrow(sub) == 0) {
+    if (nrow(nests) == 0) {
 
       cat(paste0("Burst ", burst_id,
                  ": no locations found for the specified set of parameters\n"),
