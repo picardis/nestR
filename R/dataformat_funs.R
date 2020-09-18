@@ -51,7 +51,6 @@ format_attempts <- function(nest_info,
 
   # Create unique attempt identifier
   attempts <- nest_info$nests %>%
-    as.data.frame() %>%
     dplyr::mutate(attempt_id = paste0(burst, "_", loc_id))
 
   # Initialize output
@@ -73,13 +72,10 @@ format_attempts <- function(nest_info,
 
     # Data on nest revisits
     visits <- nest_info$visits %>%
-      dplyr::filter(burst == att$burst)
-
-    # Cut between attempt start and end of nesting cycle
-    visits <- visits %>%
-      dplyr::filter(dplyr::between(date,
-                     att$attempt_start,
-                     att$attempt_start + nest_cycle))
+      dplyr::filter(burst == att$burst) %>%
+      # Cut between attempt start and end of nesting cycle
+      dplyr::filter(date >= att$attempt_start,
+                    date <= (att$attempt_start + nest_cycle))
 
     # Count daily fixes within attempt
     fix <- visits %>%
