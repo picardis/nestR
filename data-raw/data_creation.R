@@ -61,7 +61,7 @@ ws_output_2 <- find_nests(gps_data = woodstorks,
                           min_pts = 2,
                           min_d_fix = 5,
                           min_consec = 17,
-                          min_top_att = 81,
+                          min_top_att = 50,
                           min_days_att = 1,
                           discard_overlapping = TRUE)
 
@@ -262,8 +262,8 @@ lk_output_2 <- find_nests(gps_data = kestrels,
                           min_pts = 2,
                           min_d_fix = 15,
                           min_consec = 6,
-                          min_top_att = 70,
-                          min_days_att = 65,
+                          min_top_att = 15,
+                          min_days_att = 50,
                           discard_overlapping = TRUE)
 
 usethis::use_data(lk_output_2, overwrite = TRUE)
@@ -312,8 +312,8 @@ mg_output_2 <- find_nests(gps_data = gulls,
                            min_pts = 2,
                            min_d_fix = 15,
                            min_consec = 10,
-                           min_top_att = 80,
-                           min_days_att = 90,
+                           min_top_att = 50,
+                           min_days_att = 50,
                            discard_overlapping = TRUE)
 
 usethis::use_data(mg_output_2, overwrite = TRUE)

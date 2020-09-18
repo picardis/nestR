@@ -348,7 +348,9 @@ Let's look at the first few revisited locations identified for this individual i
 
 ```{r jax}
 
-head(ws_output_1$nests %>% filter(burst == "721290-2010"))
+ws_output_1$nests %>% 
+  filter(burst == "721290-2010") %>% 
+  head()
 
 ```
 
@@ -705,13 +707,14 @@ summarize_outcomes(ws_outcomes, ci = 0.95)
 The `coda` diagnostics are available after converting the output of `estimate_outcomes()` into `mcmc.list`. For example, if you wanted to look at the diagnostic plots for the $\beta$ parameters on detection ($p$):
 
 ```{r coda diagnostics, fig.width = 7, fig.height = 4.5, fig.align = 'center'}
+library(rjags)
 library(coda)
 
 ws_pb0_coda <- coda::as.mcmc.list(ws_outcomes$p.b0)
 ws_pb1_coda <- coda::as.mcmc.list(ws_outcomes$p.b1)
 
-coda:::plot.mcmc.list(ws_pb0_coda)
-coda:::plot.mcmc.list(ws_pb1_coda)
+plot(ws_pb0_coda)
+plot(ws_pb1_coda)
 
 ```
 
@@ -785,16 +788,16 @@ In this simplified version of the workflow, with only two individuals, it is eas
 ```{r kestrels find nests, eval = FALSE}
 
 lk_output_2 <- find_nests(gps_data = kestrels,
-                    sea_start = "03-31",
-                    sea_end = "08-31",
-                    nest_cycle = 35,
-                    buffer = 40,
-                    min_pts = 2,
-                    min_d_fix = 15,
-                    min_consec = 6,
-                    min_top_att = 70,
-                    min_days_att = 65,
-                    discard_overlapping = TRUE)
+                          sea_start = "03-31",
+                          sea_end = "08-31",
+                          nest_cycle = 35,
+                          buffer = 40,
+                          min_pts = 2,
+                          min_d_fix = 15,
+                          min_consec = 6,
+                          min_top_att = 20,
+                          min_days_att = 65,
+                          discard_overlapping = TRUE)
 
 lk_output_2$nests
 
@@ -933,16 +936,16 @@ We tune filtering parameters according to what we found in the exploratory data:
 ```{r gulls find nests, eval = FALSE}
 
 mg_output_2 <- find_nests(gps_data = gulls,
-                    sea_start = "04-15",
-                    sea_end = "08-01",
-                    nest_cycle = 40,
-                    buffer = 40,
-                    min_pts = 2,
-                    min_d_fix = 15,
-                    min_consec = 10,
-                    min_top_att = 80,
-                    min_days_att = 90,
-                    discard_overlapping = TRUE)
+                           sea_start = "04-15",
+                           sea_end = "08-01",
+                           nest_cycle = 40,
+                           buffer = 40,
+                           min_pts = 2,
+                           min_d_fix = 15,
+                           min_consec = 10,
+                           min_top_att = 50,
+                           min_days_att = 50,
+                           discard_overlapping = TRUE)
 
 mg_output_2$nests
 
