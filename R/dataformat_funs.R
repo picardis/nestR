@@ -74,8 +74,8 @@ format_attempts <- function(nest_info,
     visits <- nest_info$visits %>%
       dplyr::filter(burst == att$burst) %>%
       # Cut between attempt start and end of nesting cycle
-      dplyr::filter(date >= att$attempt_start,
-                    date <= (att$attempt_start + nest_cycle))
+      dplyr::filter(date >= as.POSIXlt(att$attempt_start),
+                    date <= as.POSIXlt(att$attempt_start + nest_cycle))
 
     # Count daily fixes within attempt
     fix <- visits %>%
