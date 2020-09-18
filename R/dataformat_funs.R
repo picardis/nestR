@@ -51,6 +51,7 @@ format_attempts <- function(nest_info,
 
   # Create unique attempt identifier
   attempts <- nest_info$nests %>%
+    as.data.frame() %>%
     dplyr::mutate(attempt_id = paste0(burst, "_", loc_id))
 
   # Initialize output
@@ -76,7 +77,7 @@ format_attempts <- function(nest_info,
 
     # Cut between attempt start and end of nesting cycle
     visits <- visits %>%
-      dplyr::filter(between(date,
+      dplyr::filter(dplyr::between(date,
                      att$attempt_start,
                      att$attempt_start + nest_cycle))
 
