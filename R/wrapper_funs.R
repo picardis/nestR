@@ -229,11 +229,11 @@ find_nests <- function(gps_data,
     # Join group ID back to the original data
     dat <- dplyr::left_join(dat, cands, by = "loc_id")
 
-    # Save computation time: discard group IDs that appear on < 2 days
+    # Save computation time: discard group IDs that appear on < min_consec days
     keepers <- dat %>%
       dplyr::group_by(group_id, reldate) %>%
       dplyr::tally() %>%
-      dplyr::filter(n >= 2) %>%
+      dplyr::filter(n >= min_consec) %>%
       dplyr::pull(group_id) %>%
       unique()
 
