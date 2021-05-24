@@ -166,7 +166,7 @@ find_nests <- function(gps_data,
     cat(paste0("Burst ", i, " of ", length(bursts), "\n"))
 
     dat <- gps_data %>%
-      filter(burst==burst_id)
+      dplyr::filter(burst==burst_id)
 
     # Print current burst
     cat("****************************\n")
@@ -175,9 +175,9 @@ find_nests <- function(gps_data,
 
     # Order by date and assign location id
     dat <- dat %>%
-      arrange(date) %>%
-      mutate(loc_id = 1:nrow(.)) %>%
-      dplyr::select(loc_id, everything())
+      dplyr::arrange(date) %>%
+      dplyr::mutate(loc_id = 1:nrow(.)) %>%
+      dplyr::select(loc_id, dplyr::everything())
 
     # Handle dates
     dates_out <- date_handler(dat, sea_start, sea_end)
@@ -227,26 +227,26 @@ find_nests <- function(gps_data,
     cands_count <- candidate_summary(cands)
 
     # Join group ID back to the original data
-    dat <- left_join(dat, cands, by = "loc_id")
+    dat <- dplyr::left_join(dat, cands, by = "loc_id")
 
     # Save computation time: discard group IDs that appear on < 2 days
     keepers <- dat %>%
-      group_by(group_id, reldate) %>%
-      tally() %>%
-      filter(n >= 2) %>%
-      pull(group_id) %>%
+      dplyr::group_by(group_id, reldate) %>%
+      dplyr::tally() %>%
+      dplyr::filter(n >= 2) %>%
+      dplyr::pull(group_id) %>%
       unique()
 
     # Subset data for group_ids of interest
     sub <- dat %>%
-      filter(group_id %in% keepers)
+      dplyr::filter(group_id %in% keepers)
 
     # Handle cases where there are no keepers
     if (nrow(sub) == 0) {
 
       cat(paste0("Burst ", burst_id,
                  ": no locations revisited for more than ",
-                 min_consec,
+                 2,
                  " days\n"),
           file = paste0("output/errorlog", timestamp, ".txt"),
           append = TRUE)
@@ -268,15 +268,18 @@ find_nests <- function(gps_data,
 
     # Filter group_ids that satisfy input criteria and add coordinates
     nests <- daily_stats %>%
-      filter(!is.na(attempt_start),
+      dplyr::filter(!is.na(attempt_start),
              !is.na(attempt_end),
              consec_days >= min_consec,
              perc_days_vis >= min_days_att,
              perc_top_vis >= min_top_att) %>%
-      left_join(dplyr::select(dat, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-      mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
-      mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
-      mutate(burst = burst_id) %>%
+      dplyr::left_join(dplyr::select(dat, loc_id, long, lat),
+                       by = c("group_id" = "loc_id")) %>%
+      dplyr::mutate(attempt_start = lubridate::ymd(dates_out$actual_start) +
+                      attempt_start) %>%
+      dplyr::mutate(attempt_end = lubridate::ymd(dates_out$actual_start) +
+               attempt_end) %>%
+      dplyr::mutate(burst = burst_id) %>%
       dplyr::select(burst,
              loc_id = group_id,
              long,
@@ -290,10 +293,10 @@ find_nests <- function(gps_data,
              consec_days,
              perc_days_vis,
              perc_top_vis) %>%
-      arrange(desc(tot_vis))
+      dplyr::arrange(dplyr::desc(tot_vis))
 
     # Handle cases where no nests passed the filter
-    if (nrow(sub) == 0) {
+    if (nrow(nests) == 0) {
 
       cat(paste0("Burst ", burst_id,
                  ": no locations found for the specified set of parameters\n"),
@@ -313,7 +316,7 @@ find_nests <- function(gps_data,
 
     # Format visit history data.frame
     visits <- dat %>%
-      mutate(group_id = case_when(
+      dplyr::mutate(group_id = dplyr::case_when(
         group_id %in% nests$loc_id ~ group_id,
         TRUE ~ as.integer(0)
       )) %>%

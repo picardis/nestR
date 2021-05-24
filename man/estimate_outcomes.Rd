@@ -4,9 +4,13 @@
 \alias{estimate_outcomes}
 \title{Estimate nesting outcomes}
 \usage{
-estimate_outcomes(fixes, visits, model = "null",
-  mcmc_params = list(burn_in = 1000, n_chain = 2, thin = 5, n_adapt =
-  1000, n_iter = 10000))
+estimate_outcomes(
+  fixes,
+  visits,
+  model = "null",
+  mcmc_params = list(burn_in = 1000, n_chain = 2, thin = 5, n_adapt = 1000, n_iter =
+    10000)
+)
 }
 \arguments{
 \item{fixes}{A matrix of the number of GPS fixes on each day of the nesting

@@ -1,5 +1,3 @@
-Updated preprint available: https://www.biorxiv.org/content/10.1101/562025v2
-
 # nestR
 
 ## Overview
@@ -10,7 +8,7 @@ The nestR package includes functions to (1) identify nesting locations along bir
 
 To install the current version of nestR:
   
-`remotes::install_github("picardis/nestR", build_opts = "")`
+`remotes::install_github("picardis/nestR", build_vignettes = TRUE)`
 
 ## Contribution Instructions
 
@@ -18,7 +16,7 @@ Contributions are welcome through [Issues](https://github.com/picardis/nestR/iss
 
 ## Resources
 
-Functions in nestR implement an approach first described in our manuscript: "A data-driven method to locate nest sites and estimate reproductive outcome from avian telemetry data". The manuscript is currently available as a preprint at the following link: https://www.biorxiv.org/content/10.1101/562025v2
+Functions in nestR implement an approach first described in our manuscript, "Analysis of movement recursions to detect reproductive events and estimate their fate in central place foragers" (Picardi et al. 2020). Find it here: https://movementecologyjournal.biomedcentral.com/articles/10.1186/s40462-020-00201-1
 
 For details on package features and example applications, check out the nestR vignette:
 

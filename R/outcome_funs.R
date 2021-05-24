@@ -72,7 +72,7 @@ estimate_outcomes <- function(fixes,
                                                  n_iter = 10000)){
 
   # Select the correct JAGS file for the model
-  model_txt <- case_when(
+  model_txt <- dplyr::case_when(
     model == "null" ~ "nest_outcome_null.txt",
     model == "phi_time" ~ "nest_outcome_phi_time.txt",
     model == "p_time" ~ "nest_outcome_p_time.txt",
@@ -86,7 +86,7 @@ estimate_outcomes <- function(fixes,
   s1 <- initialize_z(ch = visits)
 
   # Define JAGS model
-  jags <- jags.model(file = jags_file,
+  jags <- rjags::jags.model(file = jags_file,
                      data = list("nests" = nrow(visits),
                                "days" = ncol(visits),
                                "gps_fixes" = fixes,
@@ -96,10 +96,10 @@ estimate_outcomes <- function(fixes,
                      n.adapt = mcmc_params$n_adapt)
 
   #Run the burn-in
-  update(object = jags, n.iter = mcmc_params$burn_in)
+  rjags:::update.jags(object = jags, n.iter = mcmc_params$burn_in)
 
   #Generate posterior samples
-  post <- jags.samples(model = jags,
+  post <- rjags::jags.samples(model = jags,
                        variable.names = c("phi.b0", "phi.b1", "phi", "p.b0", "p.b1", "p", "z"),
                        n.iter = mcmc_params$n_iter,
                        thin = mcmc_params$thin)
