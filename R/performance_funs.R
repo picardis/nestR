@@ -89,18 +89,18 @@
 #'
 #' @export
 compare_buffers <- function(gps_data,
-                       buffers,
-                       known_coords,
-                       sp_tol = 100,
-                       min_pts,
-                       sea_start,
-                       sea_end,
-                       nest_cycle,
-                       min_d_fix,
-                       min_consec,
-                       min_top_att,
-                       min_days_att,
-                       discard_overlapping = TRUE) {
+                            buffers,
+                            known_coords,
+                            sp_tol = 100,
+                            min_pts,
+                            sea_start,
+                            sea_end,
+                            nest_cycle,
+                            min_d_fix,
+                            min_consec,
+                            min_top_att,
+                            min_days_att,
+                            discard_overlapping = TRUE) {
 
   # Check format of input data
   check_input(gps_data)
@@ -178,113 +178,113 @@ compare_buffers <- function(gps_data,
 
     for (k in 1:length(cands_list)) {
 
-    # Need to start with a fresh 'dat' at every k
-    dat_buff <- dat
+      # Need to start with a fresh 'dat' at every k
+      dat_buff <- dat
 
-    # Handle cases where there are no candidates
-    if (nrow(cands_list[[k]]) == 0) {
+      # Handle cases where there are no candidates
+      if (nrow(cands_list[[k]]) == 0) {
 
-      cat(paste0("Burst ", burst_id,
-                 ": no revisited locations found\n"),
-          file = paste0("output/errorlog", timestamp, ".txt"),
-          append = TRUE)
+        cat(paste0("Burst ", burst_id,
+                   ": no revisited locations found\n"),
+            file = paste0("output/errorlog", timestamp, ".txt"),
+            append = TRUE)
 
-      next()
+        next()
 
-    }
+      }
 
-    # Summarize candidates
-    cands_count <- candidate_summary(cands = cands_list[[k]])
+      # Summarize candidates
+      cands_count <- candidate_summary(cands = cands_list[[k]])
 
-    # Join group ID back to the original data
-    dat_buff <- left_join(dat, cands_list[[k]], by = "loc_id")
+      # Join group ID back to the original data
+      dat_buff <- left_join(dat, cands_list[[k]], by = "loc_id")
 
-    # Save computation time: discard group IDs that appear on < 2 days
-    keepers <- dat_buff %>%
-      group_by(group_id, reldate) %>%
-      tally() %>%
-      filter(n >= 2) %>%
-      pull(group_id) %>%
-      unique()
+      # Save computation time: discard group IDs that appear on < 2 days
+      keepers <- dat_buff %>%
+        group_by(group_id, reldate) %>%
+        tally() %>%
+        filter(n >= 2) %>%
+        pull(group_id) %>%
+        unique()
 
-    # Subset data for group_ids of interest
-    sub <- dat_buff %>%
-      filter(group_id %in% keepers)
+      # Subset data for group_ids of interest
+      sub <- dat_buff %>%
+        filter(group_id %in% keepers)
 
-    # Handle cases where there are no keepers
-    if (nrow(sub) == 0) {
+      # Handle cases where there are no keepers
+      if (nrow(sub) == 0) {
 
-      cat(paste0("Burst ", burst_id,
-                 ": no locations revisited for more than ",
-                 min_consec,
-                 " days\n"),
-          file = paste0("output/errorlog", timestamp, ".txt"),
-          append = TRUE)
+        cat(paste0("Burst ", burst_id,
+                   ": no locations revisited for more than ",
+                   min_consec,
+                   " days\n"),
+            file = paste0("output/errorlog", timestamp, ".txt"),
+            append = TRUE)
 
-      next()
+        next()
 
-    }
+      }
 
-    # Calculate revisitation stats
-    cat(paste0("Calculating revisitation patterns for buffer ", k, " of ", length(buffers), "... "))
-    daily_stats <- revisit_stats(dat = dat_buff,
-                                 sub = sub,
-                                 sea_start = sea_start,
-                                 sea_end = sea_end,
-                                 min_d_fix = min_d_fix,
-                                 min_consec = min_consec,
-                                 nest_cycle = nest_cycle)
-    cat("Done.\n")
+      # Calculate revisitation stats
+      cat(paste0("Calculating revisitation patterns for buffer ", k, " of ", length(buffers), "... "))
+      daily_stats <- revisit_stats(dat = dat_buff,
+                                   sub = sub,
+                                   sea_start = sea_start,
+                                   sea_end = sea_end,
+                                   min_d_fix = min_d_fix,
+                                   min_consec = min_consec,
+                                   nest_cycle = nest_cycle)
+      cat("Done.\n")
 
-    # Filter group_ids that satisfy input criteria and add coordinates
-    nests <- daily_stats %>%
-      filter(!is.na(attempt_start),
-             !is.na(attempt_end),
-             consec_days >= min_consec,
-             perc_days_vis >= min_days_att,
-             perc_top_vis >= min_top_att) %>%
-      left_join(dplyr::select(dat_buff, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
-      mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
-      mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
-      mutate(burst = burst_id) %>%
-      dplyr::select(burst,
-                    loc_id = group_id,
-                    long,
-                    lat,
-                    first_date,
-                    last_date,
-                    attempt_start,
-                    attempt_end,
-                    tot_vis,
-                    days_vis,
-                    consec_days,
-                    perc_days_vis,
-                    perc_top_vis) %>%
-      arrange(desc(tot_vis))
+      # Filter group_ids that satisfy input criteria and add coordinates
+      nests <- daily_stats %>%
+        filter(!is.na(attempt_start),
+               !is.na(attempt_end),
+               consec_days >= min_consec,
+               perc_days_vis >= min_days_att,
+               perc_top_vis >= min_top_att) %>%
+        left_join(dplyr::select(dat_buff, loc_id, long, lat), by = c("group_id" = "loc_id")) %>%
+        mutate(attempt_start = ymd(dates_out$actual_start) + attempt_start) %>%
+        mutate(attempt_end = ymd(dates_out$actual_start) + attempt_end) %>%
+        mutate(burst = burst_id) %>%
+        dplyr::select(burst,
+                      loc_id = group_id,
+                      long,
+                      lat,
+                      first_date,
+                      last_date,
+                      attempt_start,
+                      attempt_end,
+                      tot_vis,
+                      days_vis,
+                      consec_days,
+                      perc_days_vis,
+                      perc_top_vis) %>%
+        arrange(desc(tot_vis))
 
-    # Handle cases where no nests passed the filter
-    if (nrow(sub) == 0) {
+      # Handle cases where no nests passed the filter
+      if (nrow(sub) == 0) {
 
-      cat(paste0("Burst ", burst_id,
-                 ": no locations found for the specified set of parameters\n"),
-          file = paste0("output/errorlog", timestamp, ".txt"),
-          append = TRUE)
+        cat(paste0("Burst ", burst_id,
+                   ": no locations found for the specified set of parameters\n"),
+            file = paste0("output/errorlog", timestamp, ".txt"),
+            append = TRUE)
 
-      next()
+        next()
 
-    }
+      }
 
-    # Optional: deal with temporally overlapping attempts
-    if (discard_overlapping) {
+      # Optional: deal with temporally overlapping attempts
+      if (discard_overlapping) {
 
-      nests <- choose_overlapping(nests)
+        nests <- choose_overlapping(nests)
 
-    }
+      }
 
-    # Store results for the current buffer
-    res_buffer[[k]] <- nests
+      # Store results for the current buffer
+      res_buffer[[k]] <- nests
 
-    names(res_buffer[k]) <- buffers[k]
+      names(res_buffer)[k] <- buffers[k]
 
     }
 
@@ -305,12 +305,45 @@ compare_buffers <- function(gps_data,
   # Convert into a list with an element per buffer where each element is a data.frame for all bursts.
   files_buffers <- list.files(temp_name, pattern = "buffer_comparison_", full.names = TRUE)
   buffercomp <- as.list(rep(NA, length.out = length(buffers)))
-  for (f in files_buffers) {
-    temp <- readRDS(f)
-    buffercomp <- purrr::map2(buffercomp, temp, rbind)
+
+  for (f in 1:length(files_buffers)) {
+
+      temp <- readRDS(files_buffers[f])
+
+      # Handle situation where list of results is completely empty
+    if(length(buffercomp) == length(temp)) {
+
+      temp <- lapply(temp, function(x) {
+        if (!is.null(x)) { # handle situation where one element is empty
+          if (nrow(x) == 0) { # handle situation where no nest was kept after filtering
+            y <- data.frame(burst = NA,
+                            loc_id = NA,
+                            long = NA,
+                            lat = NA,
+                            first_date = NA,
+                            last_date = NA,
+                            attempt_start = NA,
+                            attempt_end = NA,
+                            tot_vis = NA,
+                            days_vis = NA,
+                            consec_days = NA,
+                            perc_days_vis = NA,
+                            perc_top_vis = NA)
+            return(y)
+          } else {
+            return(x)
+          }}
+      })
+
+      buffercomp <- purrr::map2(buffercomp, temp, rbind)
+    }
   }
-  buffercomp <- lapply(buffercomp, FUN = function(x){x <- x[-1,]; rownames(x) <- 1:nrow(x); return(x)})
+
+  buffercomp <- lapply(buffercomp, FUN = function(x){
+    x <- x[complete.cases(x),]; rownames(x) <- 1:nrow(x); return(x)
+  })
   names(buffercomp) <- buffers
+
 
   # Delete temporary folder and files within it
   file.remove(files_buffers)
@@ -322,7 +355,7 @@ compare_buffers <- function(gps_data,
   #Total number of nests
   tot_nests <- data.frame()
   for (n in 1:(length(buffercomp))) {
-    temp <- cbind.data.frame(buffer_size = names(buffercomp[n]), n = nrow(buffercomp[[n]]))
+    temp <- cbind.data.frame(buffer_size = names(buffercomp)[n], n = nrow(buffercomp[[n]]))
     tot_nests <- rbind(tot_nests, temp)
   }
 
@@ -333,7 +366,7 @@ compare_buffers <- function(gps_data,
       group_by(burst) %>%
       tally() %>%
       as.data.frame() %>%
-      cbind(buffer_size = names(buffercomp[n])) %>%
+      cbind(buffer_size = names(buffercomp)[n]) %>%
       dplyr::select(burst, buffer_size, n)
     nests_per_ind <- rbind(nests_per_ind, temp) %>%
       arrange(burst)
@@ -342,66 +375,66 @@ compare_buffers <- function(gps_data,
   #If known nests are provided, also return performance metrics
   if (!is.null(known_coords)) {
 
-  # Fix column names
-  names(known_coords) <- c("burst", "true_long", "true_lat")
-  # Change burst to character if it is not already
-  known_coords$burst <- as.character(known_coords$burst)
+    # Fix column names
+    names(known_coords) <- c("burst", "true_long", "true_lat")
+    # Change burst to character if it is not already
+    known_coords$burst <- as.character(known_coords$burst)
 
-  #Get rid of bursts that don't have at least 'min_consec' days of data
-  enough <- gps_data %>%
-    group_by(burst) %>%
-    summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
-    filter(days_data >= min_consec) %>%
-    pull(burst)
-  known_coords <- known_coords %>%
-    filter(burst %in% enough)
-  buffercomp_copy <- lapply(buffercomp, FUN = function(x){
-    y <- x[x$burst %in% enough,]
-    return(y)
-  })
+    #Get rid of bursts that don't have at least 'min_consec' days of data
+    enough <- gps_data %>%
+      group_by(burst) %>%
+      summarize(days_data = length(unique(lubridate::as_date(date)))) %>%
+      filter(days_data >= min_consec) %>%
+      pull(burst)
+    known_coords <- known_coords %>%
+      filter(burst %in% enough)
+    buffercomp_copy <- lapply(buffercomp, FUN = function(x){
+      y <- x[x$burst %in% enough,]
+      return(y)
+    })
 
-  #Positive predictive value
-  # Number of known nests found
-  ppv_num <- unlist(lapply(buffercomp_copy, FUN = function(x) {
-    y <- x %>%
-      left_join(known_coords, by = "burst") %>%
-      mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
-      filter(dist <= sp_tol) %>%
-      nrow()
-    return(y)
-  }))
-  # Total number of nests found
-  ppv_den <- unlist(lapply(buffercomp_copy, FUN = function(x) {
-    y <- x %>%
-      filter(burst %in% known_coords$burst) %>%
-      nrow()}))
-  # PPV
-  ppv <- data.frame(ppv = ppv_num/ppv_den*100)
-  ppv <- cbind(ppv, buffer_size = rownames(ppv)) %>%
-    dplyr::select(buffer_size, ppv)
-  rownames(ppv) <- NULL
+    #Positive predictive value
+    # Number of known nests found
+    ppv_num <- unlist(lapply(buffercomp_copy, FUN = function(x) {
+      y <- x %>%
+        left_join(known_coords, by = "burst") %>%
+        mutate(dist = geosphere::distGeo(cbind(true_long, true_lat), cbind(long, lat))) %>%
+        filter(dist <= sp_tol) %>%
+        nrow()
+      return(y)
+    }))
+    # Total number of nests found
+    ppv_den <- unlist(lapply(buffercomp_copy, FUN = function(x) {
+      y <- x %>%
+        filter(burst %in% known_coords$burst) %>%
+        nrow()}))
+    # PPV
+    ppv <- data.frame(ppv = ppv_num/ppv_den*100)
+    ppv <- cbind(ppv, buffer_size = rownames(ppv)) %>%
+      dplyr::select(buffer_size, ppv)
+    rownames(ppv) <- NULL
 
-  # Sensitivity
-  # Numbr of known nests found
-  sen_num <- ppv_num
-  # Number of nests we expected to find
-  sen_den <- rep(nrow(known_coords), length(ppv_num))
-  # Sensitivity
-  sens <- data.frame(sens = sen_num/sen_den*100)
-  sens <- cbind(sens, buffer_size = rownames(sens)) %>%
-    dplyr::select(buffer_size, sens)
-  rownames(sens) <- NULL
+    # Sensitivity
+    # Numbr of known nests found
+    sen_num <- ppv_num
+    # Number of nests we expected to find
+    sen_den <- rep(nrow(known_coords), length(ppv_num))
+    # Sensitivity
+    sens <- data.frame(sens = sen_num/sen_den*100)
+    sens <- cbind(sens, buffer_size = rownames(sens)) %>%
+      dplyr::select(buffer_size, sens)
+    rownames(sens) <- NULL
 
-  # False negatives
-  # Number of known nests we failed to find
-  fn_num <- sen_den - sen_num
-  # Number of nests we expected to find
-  fn_den <- sen_den
-  # False negative rate
-  fn <- data.frame(fn = fn_num/fn_den*100)
-  fn <- cbind(fn, buffer_size = rownames(fn)) %>%
-    dplyr::select(buffer_size, fn)
-  rownames(fn) <- NULL
+    # False negatives
+    # Number of known nests we failed to find
+    fn_num <- sen_den - sen_num
+    # Number of nests we expected to find
+    fn_den <- sen_den
+    # False negative rate
+    fn <- data.frame(fn = fn_num/fn_den*100)
+    fn <- cbind(fn, buffer_size = rownames(fn)) %>%
+      dplyr::select(buffer_size, fn)
+    rownames(fn) <- NULL
 
   }
 
