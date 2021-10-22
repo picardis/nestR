@@ -231,8 +231,8 @@ find_nests <- function(gps_data,
 
     # Save computation time: discard group IDs that appear on < 2 days
     keepers <- dat %>%
-      dplyr::group_by(group_id, reldate) %>%
-      dplyr::tally() %>%
+      dplyr::group_by(group_id) %>%
+      dplyr::summarize(n = dplyr::n_distinct(reldate)) %>%
       dplyr::filter(n >= 2) %>%
       dplyr::pull(group_id) %>%
       unique()
