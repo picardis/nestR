@@ -68,7 +68,8 @@ This section is meant to provide a concise and self-sufficient overview of the c
 
 * **Context** -- The rationale behind the development of `nestR` is that bird movement patterns during nesting differ from those they exhibit when non nesting, and that this behavioral signal is observable in tracking data and can be used to infer the location of nests and the outcome of nesting attempts (see conceptual figure below). When birds are nesting, they behave as central place foragers, exhibiting back-and-forth movements to and from their nest while they provide food for their nestlings and themselves. Parents keep returning to their nest to feed their offspring until fledging. Repeatedly visited locations can be identified along movement trajectories, and patterns of revisitation can be used to determine whether a location that gets visited repeatedly is likely to be a nest. Histories of nest revisitation can then be used to estimate the outcome of nesting attempts. Specifically, we can estimate if an attempt was successful or not according to whether it lasted as long as the theoretical duration of a complete nesting cycle for the focal species. The underlying assumption is that the nest stops being revisited after an attempt fails, which is true for many bird species. 
 
-<br>
+<br>  
+
 ```{r conceptual traj fig, echo = FALSE, out.width = '100%', fig.align = 'center'}
 
 knitr::include_graphics("concept_trajs.png")
@@ -494,12 +495,14 @@ set.seed(9)
 
 ```
 
+<br>  
+  
 ```{r cart example, fig.width = 7, fig.height = 6, fig.align = 'center'}
 
 (ws_cart <- discriminate_nests(explodata = explodata_ws, train_frac = 0.5))
 
 ```
-
+  
 The resulting tree shows that two criteria can help us tell nests apart from non-nests: (1) a location needs to be visited for at least 81% of the time on the day the attendance is maximum and for at least 17 consecutive days to be a nest. These criteria translate in the following set of parameters:
 
 * `min_top_att >= 81`, `min_consec >= 17`
