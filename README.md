@@ -22,6 +22,8 @@ For details on package features and example applications, check out the nestR vi
 
 `vignette("nestR")`
 
+A version of the vignette rendered to PDF is available in this repo at `inst/doc/nestR.pdf`. Note that PDF is not the native format and the HTML version is easier to read and navigate.
+
 ## Data Sources
 
 The wood stork data was provided by P. Frederick and R. R. Borkhataria at the University of Florida, USA.
