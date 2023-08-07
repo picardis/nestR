@@ -14,10 +14,10 @@ estimate_outcomes(
 }
 \arguments{
 \item{fixes}{A matrix of the number of GPS fixes on each day of the nesting
-attempt as returned by \code{\link{format_visits}}.}
+attempt as returned by \code{\link{format_attempts}}.}
 
 \item{visits}{A matrix of the number of nest visits on each day of the nesting
-attempt as returned by \code{\link{format_visits}}.}
+attempt as returned by \code{\link{format_attempts}}.}
 
 \item{model}{Type of model to be run. One of "null", "p_time", "phi_time",
 or "phi_time_p_time".}
@@ -33,7 +33,7 @@ A list of \code{mcarray} objects.
 of nest revisitation to estimate the outcome of nesting attempts.
 }
 \details{
-Data can be passed from \code{\link{format_visits}} to the function
+Data can be passed from \code{\link{format_attempts}} to the function
 arguments \code{fixes} and \code{visits}.
 
 The function runs a JAGS MCMC with uninformative priors for the estimation of

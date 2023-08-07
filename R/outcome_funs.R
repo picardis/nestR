@@ -39,7 +39,7 @@ initialize_z <- function(ch) {
 #' \code{estimate_outcomes} fits a Bayesian hierarchical model to the histories
 #' of nest revisitation to estimate the outcome of nesting attempts.
 #'
-#' @details Data can be passed from \code{\link{format_visits}} to the function
+#' @details Data can be passed from \code{\link{format_attempts}} to the function
 #' arguments \code{fixes} and \code{visits}.
 #'
 #' The function runs a JAGS MCMC with uninformative priors for the estimation of
@@ -51,9 +51,9 @@ initialize_z <- function(ch) {
 #' and a model where both p and phi vary with time.
 #'
 #' @param fixes A matrix of the number of GPS fixes on each day of the nesting
-#' attempt as returned by \code{\link{format_visits}}.
+#' attempt as returned by \code{\link{format_attempts}}.
 #' @param visits A matrix of the number of nest visits on each day of the nesting
-#' attempt as returned by \code{\link{format_visits}}.
+#' attempt as returned by \code{\link{format_attempts}}.
 #' @param model Type of model to be run. One of "null", "p_time", "phi_time",
 #' or "phi_time_p_time".
 #' @param mcmc_params List of MCMC parameters. \code{burn_in}, \code{n_chain},

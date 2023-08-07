@@ -20,7 +20,6 @@ data.
 \details{
 Distances are calculated using the function
 \code{\link[geosphere]{distGeo}}. Takes advantage of \code{data.table}
-for a fast implementation. Adapted from a post on \href{
-https://stackoverflow.com/questions/36817423/how-to-efficiently-calculate-
-distance-between-pair-of-coordinates-using-data-tab}{StackOverflow}.
+for a fast implementation. Adapted from a post on
+\href{https://stackoverflow.com/questions/36817423/how-to-efficiently-calculate-distance-between-pair-of-coordinates-using-data-tab}{StackOverflow}.
 }

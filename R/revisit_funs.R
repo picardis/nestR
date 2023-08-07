@@ -181,6 +181,7 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 #' \code{min_d_fix} interrupts a sequence of consecutive days visited, it
 #' does not get considered and the sequence gets counted as uninterrupted.
 #'
+#' @param dat \code{data.frame}. Original location data \code{UPDATE}
 #' @param sub \code{data.frame}. Subset of movement data corresponding to
 #' candidate nests
 #' @param sea_start Integer (if Julian day) or date in which the nesting season
@@ -189,6 +190,8 @@ attempt_limits <- function(x, min_consec, nest_cycle){
 #' ends
 #' @param min_d_fix Integer. Minimum number of fixes in a day for that day to
 #' be counted as not visited if a visit was not observed
+#' @param min_consec Integer \code{UPDATE}
+#' @param nest_cycle Integer \code{UPDATE}
 #' @return Returns \code{data.frame} with revisitation statistics for each
 #' candidate nest.
 revisit_stats <- function(dat,

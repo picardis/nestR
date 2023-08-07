@@ -7,6 +7,8 @@
 revisit_stats(dat, sub, sea_start, sea_end, min_d_fix, min_consec, nest_cycle)
 }
 \arguments{
+\item{dat}{\code{data.frame}. Original location data \code{UPDATE}}
+
 \item{sub}{\code{data.frame}. Subset of movement data corresponding to
 candidate nests}
 
@@ -18,6 +20,10 @@ ends}
 
 \item{min_d_fix}{Integer. Minimum number of fixes in a day for that day to
 be counted as not visited if a visit was not observed}
+
+\item{min_consec}{Integer \code{UPDATE}}
+
+\item{nest_cycle}{Integer \code{UPDATE}}
 }
 \value{
 Returns \code{data.frame} with revisitation statistics for each

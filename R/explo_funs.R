@@ -306,7 +306,7 @@ discriminate_nests <- function(explodata, train_frac) {
   # Training dataset
   train_data <- explodata %>%
     dplyr::group_by(.data$nest) %>%
-    dplyr::sample_frac(.data$size = train_frac)
+    dplyr::sample_frac(size = train_frac)
 
   # Testing dataset
   suppressMessages(test_data <- dplyr::anti_join(explodata, train_data))

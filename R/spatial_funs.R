@@ -4,9 +4,8 @@
 #' data.
 #' @details Distances are calculated using the function
 #' \code{\link[geosphere]{distGeo}}. Takes advantage of \code{data.table}
-#' for a fast implementation. Adapted from a post on \href{
-#' https://stackoverflow.com/questions/36817423/how-to-efficiently-calculate-
-#' distance-between-pair-of-coordinates-using-data-tab}{StackOverflow}.
+#' for a fast implementation. Adapted from a post on
+#' \href{https://stackoverflow.com/questions/36817423/how-to-efficiently-calculate-distance-between-pair-of-coordinates-using-data-tab}{StackOverflow}.
 #' @param dat \code{data.frame} of movement data for a single burst. Needs to
 #' include burst, date, long, lat
 #' @return Returns \code{data.table} with distance matrix.
@@ -168,7 +167,7 @@ get_candidates_multi <- function(dmat, buffers, min_pts = 2){
     # Pre-process distance matrix
     dm <- dmat %>%
       dplyr::filter(.data$dist <= buffers[j]) %>% # Keep just measurements less than the buffer
-      dplyr::mutate(.data$group_id = as.integer(NA)) # Initialize the group_id field which
+      dplyr::mutate(group_id = as.integer(NA)) # Initialize the group_id field which
     # will be used to label points falling within the same buffer
 
     # Remove "isolated" points, as defined by parameter 'min_pts'

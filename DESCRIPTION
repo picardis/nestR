@@ -19,18 +19,20 @@ Imports:
     shiny,
     shinydashboard,
     leaflet,
-    kableExtra,
-    gridExtra,
     purrr,
     forcats,
     rpart,
     rpart.plot,
     magrittr,
     ggplot2,
-    viridis
+    viridis,
+    rlang
 RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     markdown,
-    rmarkdown
+    rmarkdown,
+    kableExtra,
+    gridExtra,
+    coda
 VignetteBuilder: knitr
