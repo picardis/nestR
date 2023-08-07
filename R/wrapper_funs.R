@@ -166,7 +166,7 @@ find_nests <- function(gps_data,
     cat(paste0("Burst ", i, " of ", length(bursts), "\n"))
 
     dat <- gps_data %>%
-      dplyr::filter(burst==burst_id)
+      dplyr::filter(.data$burst == burst_id)
 
     # Print current burst
     cat("****************************\n")
@@ -175,9 +175,9 @@ find_nests <- function(gps_data,
 
     # Order by date and assign location id
     dat <- dat %>%
-      dplyr::arrange(date) %>%
+      dplyr::arrange(.data$date) %>%
       dplyr::mutate(loc_id = 1:nrow(.)) %>%
-      dplyr::select(loc_id, dplyr::everything())
+      dplyr::select(.data$loc_id, dplyr::everything())
 
     # Handle dates
     dates_out <- date_handler(dat, sea_start, sea_end)
@@ -231,15 +231,15 @@ find_nests <- function(gps_data,
 
     # Save computation time: discard group IDs that appear on < 2 days
     keepers <- dat %>%
-      dplyr::group_by(group_id) %>%
-      dplyr::summarize(n = dplyr::n_distinct(reldate)) %>%
-      dplyr::filter(n >= 2) %>%
-      dplyr::pull(group_id) %>%
+      dplyr::group_by(.data$group_id) %>%
+      dplyr::summarize(n = dplyr::n_distinct(.data$reldate)) %>%
+      dplyr::filter(.data$n >= 2) %>%
+      dplyr::pull(.data$group_id) %>%
       unique()
 
     # Subset data for group_ids of interest
     sub <- dat %>%
-      dplyr::filter(group_id %in% keepers)
+      dplyr::filter(.data$group_id %in% keepers)
 
     # Handle cases where there are no keepers
     if (nrow(sub) == 0) {
@@ -268,32 +268,35 @@ find_nests <- function(gps_data,
 
     # Filter group_ids that satisfy input criteria and add coordinates
     nests <- daily_stats %>%
-      dplyr::filter(!is.na(attempt_start),
-             !is.na(attempt_end),
-             consec_days >= min_consec,
-             perc_days_vis >= min_days_att,
-             perc_top_vis >= min_top_att) %>%
-      dplyr::left_join(dplyr::select(dat, loc_id, long, lat),
+      dplyr::filter(!is.na(.data$attempt_start),
+             !is.na(.data$attempt_end),
+             .data$consec_days >= min_consec,
+             .data$perc_days_vis >= min_days_att,
+             .data$perc_top_vis >= min_top_att) %>%
+      dplyr::left_join(dplyr::select(.data$dat,
+                                     .data$loc_id,
+                                     .data$long,
+                                     .data$lat),
                        by = c("group_id" = "loc_id")) %>%
       dplyr::mutate(attempt_start = lubridate::ymd(dates_out$actual_start) +
                       attempt_start) %>%
       dplyr::mutate(attempt_end = lubridate::ymd(dates_out$actual_start) +
                attempt_end) %>%
       dplyr::mutate(burst = burst_id) %>%
-      dplyr::select(burst,
-             loc_id = group_id,
-             long,
-             lat,
-             first_date,
-             last_date,
-             attempt_start,
-             attempt_end,
-             tot_vis,
-             days_vis,
-             consec_days,
-             perc_days_vis,
-             perc_top_vis) %>%
-      dplyr::arrange(dplyr::desc(tot_vis))
+      dplyr::select(.data$burst,
+             loc_id = .data$group_id,
+             .data$long,
+             .data$lat,
+             .data$first_date,
+             .data$last_date,
+             .data$attempt_start,
+             .data$attempt_end,
+             .data$tot_vis,
+             .data$days_vis,
+             .data$consec_days,
+             .data$perc_days_vis,
+             .data$perc_top_vis) %>%
+      dplyr::arrange(dplyr::desc(.data$tot_vis))
 
     # Handle cases where no nests passed the filter
     if (nrow(nests) == 0) {
@@ -317,10 +320,14 @@ find_nests <- function(gps_data,
     # Format visit history data.frame
     visits <- dat %>%
       dplyr::mutate(group_id = dplyr::case_when(
-        group_id %in% nests$loc_id ~ group_id,
-        TRUE ~ as.integer(0)
+        .data$group_id %in% nests$loc_id ~ .data$group_id,
+        TRUE ~ 0L
       )) %>%
-      dplyr::select(burst, date, long, lat, loc_id = group_id)
+      dplyr::select(.data$burst,
+                    .data$date,
+                    .data$long,
+                    .data$lat,
+                    loc_id = .data$group_id)
 
     cat("\nProcess completed!\n\n")
 

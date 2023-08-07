@@ -134,7 +134,7 @@ explore_nests <- function(gps_data) {
       discard_overlapping <- input$discard_overlapping
 
       gps_data <- gps_data %>%
-        dplyr::filter(burst == input$burst)
+        dplyr::filter(.data$burst == input$burst)
 
       nests <- find_nests(gps_data = gps_data,
                           buffer = buffer,

@@ -51,7 +51,8 @@ date_handler <- function(dat, sea_start, sea_end) {
 
   # Now deal with the case where the wrong year was assigned --
   # see comment above
-  if (sum(dplyr::between(lubridate::as_date(dat$date), start_dummy, end_dummy))==0) {
+  if (sum(dplyr::between(lubridate::as_date(dat$date),
+                         start_dummy, end_dummy)) == 0) {
     lubridate::year(start_dummy) <- lubridate::year(start_dummy) - 1
     lubridate::year(end_dummy) <- lubridate::year(end_dummy) -1
   }
@@ -62,7 +63,7 @@ date_handler <- function(dat, sea_start, sea_end) {
 
   #Remove any data not within the breeding limits
   dat <- dat %>%
-    dplyr::filter(date >= start_dummy & date <= end_dummy)
+    dplyr::filter(.data$date >= start_dummy & .data$date <= end_dummy)
 
   # Return the data and the actual season start and end
   return(list(dat = dat,

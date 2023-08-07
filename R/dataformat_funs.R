@@ -51,7 +51,7 @@ format_attempts <- function(nest_info,
 
   # Create unique attempt identifier
   attempts <- nest_info$nests %>%
-    dplyr::mutate(attempt_id = paste0(burst, "_", loc_id))
+    dplyr::mutate(attempt_id = paste0(.data$burst, "_", .data$loc_id))
 
   # Initialize output
 
@@ -72,20 +72,20 @@ format_attempts <- function(nest_info,
 
     # Data on nest revisits
     visits <- nest_info$visits %>%
-      dplyr::filter(burst == att$burst) %>%
+      dplyr::filter(.data$burst == att$burst) %>%
       # Cut between attempt start and end of nesting cycle
-      dplyr::filter(date >= as.POSIXlt(att$attempt_start),
-                    date <= as.POSIXlt(att$attempt_start + nest_cycle))
+      dplyr::filter(.data$date >= as.POSIXlt(att$attempt_start),
+                    .data$date <= as.POSIXlt(att$attempt_start + nest_cycle))
 
     # Count daily fixes within attempt
     fix <- visits %>%
-      dplyr::group_by(date = lubridate::as_date(date)) %>%
+      dplyr::group_by(date = lubridate::as_date(.data$date)) %>%
       dplyr::tally()
 
     # Count daily visits within attempt
     vis <- visits %>%
-      dplyr::filter(loc_id == att$loc_id) %>%
-      dplyr::group_by(date = lubridate::as_date(date)) %>%
+      dplyr::filter(.data$loc_id == att$loc_id) %>%
+      dplyr::group_by(date = lubridate::as_date(.data$date)) %>%
       dplyr::tally()
 
     # Initialize visit history
@@ -101,12 +101,12 @@ format_attempts <- function(nest_info,
     # Replace NAs with zeroes
     history <- history %>%
       dplyr::mutate(fix = case_when(
-        is.na(fix) ~ as.integer(0),
-        TRUE ~ fix
+        is.na(.data$fix) ~ 0L,
+        TRUE ~ .data$fix
       )) %>%
       dplyr::mutate(vis = case_when(
-        is.na(vis) ~ as.integer(0),
-        TRUE ~ vis
+        is.na(.data$vis) ~ 0L,
+        TRUE ~ .data$vis
       ))
 
     # Plug values into matrices

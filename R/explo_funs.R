@@ -78,7 +78,7 @@ get_explodata <- function(candidate_nests,
 
     # Keep only bursts for which we have a known nest
     candidate_nests <- candidate_nests %>%
-      dplyr::filter(burst %in% known_coords$burst)
+      dplyr::filter(.data$burst %in% known_coords$burst)
 
     # Create empty lists to store results
     nests <- list()
@@ -89,25 +89,23 @@ get_explodata <- function(candidate_nests,
 
       # Subset burst and order by total visits
       sub <- candidate_nests %>%
-        dplyr::filter(burst == i) %>%
-        dplyr::arrange(desc(tot_vis))
+        dplyr::filter(.data$burst == i) %>%
+        dplyr::arrange(desc(.data$tot_vis))
 
       # Make into matrix for distance computation
-      cands_matrix <- sub %>%
-        dplyr::select(long, lat) %>%
-        as.matrix(ncol = 2)
+      cands_matrix <- as.matrix(sub[, c("long", "lat")], ncol = 2)
 
       # Select known nest location
       known <- known_coords %>%
-        dplyr::filter(burst == i) %>%
-        dplyr::select(long, lat)
+        dplyr::filter(.data$burst == i) %>%
+        dplyr::select(.data$long, .data$lat)
 
       # Compute distance of each candidate from real nest
       sub$dist_from_known <- geosphere::distGeo(cands_matrix, known)
 
       # Subset candidates within buffer distance of known nest location
       true_nest <- sub %>%
-        dplyr::filter(dist_from_known <= buffer) %>%
+        dplyr::filter(.data$dist_from_known <= buffer) %>%
         dplyr::slice(1)
 
       # The real nest is the top (most visited) among those
@@ -115,14 +113,14 @@ get_explodata <- function(candidate_nests,
 
       # Get rid of dist_from_known column
       nests[[i]] <- nests[[i]] %>%
-        dplyr::select(-dist_from_known)
+        dplyr::select(-.data$dist_from_known)
 
       # If the true nest was found, select a non-nest too
       if (nrow(nests[[i]]) > 0) {
 
         # Subset the rest
         rest <- sub %>%
-          dplyr::filter(loc_id != nests[[i]]$loc_id)
+          dplyr::filter(.data$loc_id != nests[[i]]$loc_id)
 
         # If pick_overlapping == TRUE, pick non-nest among those that
         # temporally overlap with the true one
@@ -130,20 +128,24 @@ get_explodata <- function(candidate_nests,
 
           # Get start and end of true attempt
           true_start <- true_nest %>%
-            dplyr::pull(attempt_start)
+            dplyr::pull(.data$attempt_start)
           true_end <- true_nest %>%
-            dplyr::pull(attempt_end)
+            dplyr::pull(.data$attempt_end)
 
           # The non-nest is the top visited among those that temporally
           # overlap with the nest
           non_nests[[i]] <- rest %>%
-            dplyr::filter(between(attempt_start, true_start, true_end) |
-                      between(attempt_end, true_start, true_end)) %>%
+            dplyr::filter(between(.data$attempt_start,
+                                  true_start,
+                                  true_end) |
+                      between(.data$attempt_end,
+                              true_start,
+                              true_end)) %>%
             dplyr::slice(1)
 
           # Get rid of dist_from_known column
           non_nests[[i]] <- non_nests[[i]] %>%
-            dplyr::select(-dist_from_known)
+            dplyr::select(-.data$dist_from_known)
 
           # Warning message in case there are no temporally overlapping attempts
           if (nrow(non_nests[[i]])==0) {
@@ -155,12 +157,12 @@ get_explodata <- function(candidate_nests,
 
           # The non-nest is the top visited among the rest
           non_nests[[i]] <- rest %>%
-            dplyr::filter(tot_vis == max(rest$tot_vis)) %>%
+            dplyr::filter(.data$tot_vis == max(rest$tot_vis)) %>%
             dplyr::slice(1)
 
           # Get rid of dist_from_known column
           non_nests[[i]] <- non_nests[[i]] %>%
-            dplyr::select(-dist_from_known)
+            dplyr::select(-.data$dist_from_known)
 
         }
 
@@ -172,7 +174,7 @@ get_explodata <- function(candidate_nests,
 
       # Keep only bursts for which we have a known nest
       candidate_nests <- candidate_nests %>%
-        dplyr::filter(burst %in% known_ids$burst)
+        dplyr::filter(.data$burst %in% known_ids$burst)
 
       # Create empty lists to store results
       nests <- list()
@@ -182,24 +184,24 @@ get_explodata <- function(candidate_nests,
 
         # Subset burst and order by total visits
         sub <- candidate_nests %>%
-          dplyr::filter(burst == i) %>%
-          dplyr::arrange(desc(tot_vis))
+          dplyr::filter(.data$burst == i) %>%
+          dplyr::arrange(desc(.data$tot_vis))
 
         # Select known nest location
         known <- known_ids %>%
-          dplyr::filter(burst == i) %>%
-          dplyr::pull(loc_id)
+          dplyr::filter(.data$burst == i) %>%
+          dplyr::pull(.data$loc_id)
 
         # Select real nest based on location ID
         true_nest <- sub %>%
-          dplyr::filter(loc_id == known)
+          dplyr::filter(.data$loc_id == known)
 
         # Store in list
         nests[[i]] <- true_nest
 
         # Subset the rest
         rest <- sub %>%
-          dplyr::filter(loc_id != known)
+          dplyr::filter(.data$loc_id != known)
 
         # If the true nest was found, select a non-nest too
         if (nrow(nests[[i]]) > 0) {
@@ -210,15 +212,19 @@ get_explodata <- function(candidate_nests,
 
             # Get start and end of true attempt
             true_start <- true_nest %>%
-              dplyr::pull(attempt_start)
+              dplyr::pull(.data$attempt_start)
             true_end <- true_nest %>%
-              dplyr::pull(attempt_end)
+              dplyr::pull(.data$attempt_end)
 
             # The non-nest is the top visited among those that temporally
             # overlap with the nest
             non_nests[[i]] <- rest %>%
-              dplyr::filter(between(attempt_start, true_start, true_end) |
-                       between(attempt_end, true_start, true_end)) %>%
+              dplyr::filter(between(.data$attempt_start,
+                                    true_start,
+                                    true_end) |
+                       between(.data$attempt_end,
+                               true_start,
+                               true_end)) %>%
               dplyr::slice(1)
 
             # Warning message in case there are no temporally overlapping attempts
@@ -231,7 +237,7 @@ get_explodata <- function(candidate_nests,
 
             # The non-nest is the top visited among the rest
             non_nests[[i]] <- rest %>%
-              dplyr::filter(tot_vis == max(rest$tot_vis)) %>%
+              dplyr::filter(.data$tot_vis == max(rest$tot_vis)) %>%
               dplyr::slice(1)
 
           }
@@ -292,15 +298,15 @@ discriminate_nests <- function(explodata, train_frac) {
   # Transform flag (nest? y/n) to factor
   explodata <- explodata %>%
     dplyr::mutate(nest = forcats::fct_relevel(as.factor(nest), "no", "yes")) %>%
-    dplyr::select(nest,
-           "Consecutive_days" = consec_days,
-           "Percent_days_visited" = perc_days_vis,
-           "Percent_top_attendance" = perc_top_vis)
+    dplyr::select(.data$nest,
+           "Consecutive_days" = .data$consec_days,
+           "Percent_days_visited" = .data$perc_days_vis,
+           "Percent_top_attendance" = .data$perc_top_vis)
 
   # Training dataset
   train_data <- explodata %>%
-    dplyr::group_by(nest) %>%
-    dplyr::sample_frac(size = train_frac)
+    dplyr::group_by(.data$nest) %>%
+    dplyr::sample_frac(.data$size = train_frac)
 
   # Testing dataset
   suppressMessages(test_data <- dplyr::anti_join(explodata, train_data))
@@ -321,9 +327,9 @@ discriminate_nests <- function(explodata, train_frac) {
   # Choose the smallest tree that minimizes X-rel error
   cp <- cp_table %>%
     as.data.frame() %>%
-    dplyr::filter(xerror == min(xerror)) %>%
+    dplyr::filter(.data$xerror == min(.data$xerror)) %>%
     dplyr::slice(1) %>%
-    dplyr::pull(CP)
+    dplyr::pull(.data$CP)
 
   # Prune tree
   pruned_cart <- rpart::prune(cart, cp = cp)

@@ -71,20 +71,20 @@ get_candidates <- function(dm, buffer, min_pts = 2){
 
   # Pre-process distance matrix
   dm <- dm %>%
-    dplyr::filter(dist <= buffer) %>% # Keep just measurements less than the buffer
+    dplyr::filter(.data$dist <= buffer) %>% # Keep just measurements less than the buffer
     dplyr::mutate(group_id = as.integer(NA)) # Initialize the group_id field which
     # will be used to label points falling within the same buffer
 
   # Remove "isolated" points, as defined by parameter 'min_pts'
   iso <- dm %>%
-    dplyr::group_by(orig_id) %>%
+    dplyr::group_by(.data$orig_id) %>%
     dplyr::tally() %>%
-    dplyr::filter(n < min_pts) %>%
-    dplyr::pull(orig_id)
+    dplyr::filter(.data$n < min_pts) %>%
+    dplyr::pull(.data$orig_id)
   dm <- dm %>%
     dplyr::mutate(group_id =
                     dplyr::case_when(
-                      orig_id %in% iso ~ orig_id,
+                      .data$orig_id %in% iso ~ .data$orig_id,
                       TRUE ~ as.integer(NA)
                     ))
 
@@ -96,32 +96,32 @@ get_candidates <- function(dm, buffer, min_pts = 2){
 
     # Find the point with the most other points inside its buffer
     top <- dm %>%
-      dplyr::filter(is.na(group_id)) %>%
-      dplyr::group_by(orig_id) %>%
+      dplyr::filter(is.na(.data$group_id)) %>%
+      dplyr::group_by(.data$orig_id) %>%
       dplyr::tally() %>%
-      dplyr::arrange(desc(n)) %>%
+      dplyr::arrange(desc(.data$n)) %>%
       dplyr::slice(1) %>%
-      dplyr::pull(orig_id)
+      dplyr::pull(.data$orig_id)
 
     # Find all the other points inside that buffer
     others <- dm %>%
-      dplyr::filter(orig_id == top) %>%
-      dplyr::pull(dest_id)
+      dplyr::filter(.data$orig_id == top) %>%
+      dplyr::pull(.data$dest_id)
 
     # Assign the group of 'top' to all origins in 'others'
     dm <- dm %>%
       dplyr::mutate(group_id = dplyr::case_when(
-        !is.na(group_id) ~ group_id,
-        orig_id %in% others ~ top,
+        !is.na(.data$group_id) ~ .data$group_id,
+        .data$orig_id %in% others ~ top,
         TRUE ~ as.integer(NA)
       ))
   } # End while()
 
   # Create data.frame with loc_id and the group_id it belongs in
   cands <- dm %>%
-    dplyr::select(loc_id = orig_id, group_id) %>%
+    dplyr::select(loc_id = .data$orig_id, .data$group_id) %>%
     unique() %>%
-    dplyr::arrange(loc_id)
+    dplyr::arrange(.data$loc_id)
 
   # Return the result
   return(cands)
@@ -138,9 +138,9 @@ get_candidates <- function(dm, buffer, min_pts = 2){
 candidate_summary <- function(cands){
 
     cands <- cands %>%
-      dplyr::group_by(group_id) %>%
+      dplyr::group_by(.data$group_id) %>%
       dplyr::tally() %>%
-      dplyr::arrange(dplyr::desc(n))
+      dplyr::arrange(dplyr::desc(.data$n))
 
   # Return result
   return(cands)
@@ -167,20 +167,20 @@ get_candidates_multi <- function(dmat, buffers, min_pts = 2){
   for (j in 1:length(buffers)) {
     # Pre-process distance matrix
     dm <- dmat %>%
-      dplyr::filter(dist <= buffers[j]) %>% # Keep just measurements less than the buffer
-      dplyr::mutate(group_id = as.integer(NA)) # Initialize the group_id field which
+      dplyr::filter(.data$dist <= buffers[j]) %>% # Keep just measurements less than the buffer
+      dplyr::mutate(.data$group_id = as.integer(NA)) # Initialize the group_id field which
     # will be used to label points falling within the same buffer
 
     # Remove "isolated" points, as defined by parameter 'min_pts'
     iso <- dm %>%
-      dplyr::group_by(orig_id) %>%
+      dplyr::group_by(.data$orig_id) %>%
       dplyr::tally() %>%
-      dplyr::filter(n < min_pts) %>%
-      dplyr::pull(orig_id)
+      dplyr::filter(.data$n < min_pts) %>%
+      dplyr::pull(.data$orig_id)
     dm <- dm %>%
       dplyr::mutate(group_id =
                       dplyr::case_when(
-                        orig_id %in% iso ~ orig_id,
+                        .data$orig_id %in% iso ~ .data$orig_id,
                         TRUE ~ as.integer(NA)
                       ))
 
@@ -192,32 +192,32 @@ get_candidates_multi <- function(dmat, buffers, min_pts = 2){
 
       # Find the point with the most other points inside its buffer
       top <- dm %>%
-        dplyr::filter(is.na(group_id)) %>%
-        dplyr::group_by(orig_id) %>%
+        dplyr::filter(is.na(.data$group_id)) %>%
+        dplyr::group_by(.data$orig_id) %>%
         dplyr::tally() %>%
-        dplyr::arrange(desc(n)) %>%
+        dplyr::arrange(desc(.data$n)) %>%
         dplyr::slice(1) %>%
-        dplyr::pull(orig_id)
+        dplyr::pull(.data$orig_id)
 
       # Find all the other points inside that buffer
       others <- dm %>%
-        dplyr::filter(orig_id == top) %>%
-        dplyr::pull(dest_id)
+        dplyr::filter(.data$orig_id == top) %>%
+        dplyr::pull(.data$dest_id)
 
       # Assign the group of 'top' to all origins in 'others'
       dm <- dm %>%
         dplyr::mutate(group_id = dplyr::case_when(
-          !is.na(group_id) ~ group_id,
-          orig_id %in% others ~ top,
+          !is.na(.data$group_id) ~ .data$group_id,
+          .data$orig_id %in% others ~ top,
           TRUE ~ as.integer(NA)
         ))
     } # End while()
 
     # Create data.frame with loc_id and the group_id it belongs in
     cands <- dm %>%
-      dplyr::select(loc_id = orig_id, group_id) %>%
+      dplyr::select(loc_id = .data$orig_id, .data$group_id) %>%
       unique() %>%
-      dplyr::arrange(loc_id)
+      dplyr::arrange(.data$loc_id)
 
     # Save results for the current buffer
     cands_list[[j]] <- cands

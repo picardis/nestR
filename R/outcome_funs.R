@@ -96,7 +96,7 @@ estimate_outcomes <- function(fixes,
                      n.adapt = mcmc_params$n_adapt)
 
   #Run the burn-in
-  rjags:::update.jags(object = jags, n.iter = mcmc_params$burn_in)
+  stats::update(object = jags, n.iter = mcmc_params$burn_in)
 
   #Generate posterior samples
   post <- rjags::jags.samples(model = jags,
@@ -138,11 +138,11 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
   # Mean across all MCMC iterations and chains
   # Credible intervals across all MCMC iterations and chains
   phi_df <- data.frame(phi_mean = apply(phi, 1, mean),
-                       phi_lwr <- apply(phi, 1, quantile, lwr),
-                       phi_upr <- apply(phi, 1, quantile, upr))
+                       phi_lwr = apply(phi, 1, quantile, lwr),
+                       phi_upr = apply(phi, 1, quantile, upr))
 
   # Plot
-  ggplot2::ggplot(phi_df,
+  p <- ggplot2::ggplot(phi_df,
                   ggplot2::aes(1:length(phi_mean), phi_mean)) +
     ggplot2::ylim(0, 1) +
     ggplot2::geom_line() +
@@ -156,6 +156,9 @@ plot_survival <- function(mcmc_obj, ci = 0.95){
     ggplot2::ylab("Daily Survival (phi)") +
     ggplot2::xlab("Days") +
     ggplot2::ggtitle("Survival")
+
+  print(p)
+  return(p)
 
 }
 
@@ -183,8 +186,8 @@ plot_detection <- function(mcmc_obj, ci = 0.95){
   # Mean across all MCMC iterations and chains
   # Credible intervals across all MCMC iterations and chains
   p_df <- data.frame(p_mean = apply(p, 1, mean),
-                       p_lwr <- apply(p, 1, quantile, lwr),
-                       p_upr <- apply(p, 1, quantile, upr))
+                       p_lwr = apply(p, 1, quantile, lwr),
+                       p_upr = apply(p, 1, quantile, upr))
 
   # Plot
   ggplot2::ggplot(p_df,

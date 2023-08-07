@@ -25,7 +25,9 @@ Imports:
     forcats,
     rpart,
     rpart.plot,
-    magrittr
+    magrittr,
+    ggplot2,
+    viridis
 RoxygenNote: 7.2.3
 Suggests: 
     knitr,
