@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 .Rd2pdf*
+*.tex
+vignettes/nestR.log

@@ -1,7 +1,7 @@
 Package: nestR
 Type: Package
 Title: Estimation of Bird Nesting from Tracking Data
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(person("Simona", "Picardi", email = "simona.picardi@usu.edu", role = c("aut", "cre")), person("Brian", "Smith", email = "bsmity13@gmail.com", role = c("aut")), person("Matthew", "Boone", email = "m.boone@ufl.edu", role = c("aut")), person("Mathieu", "Basille", email = "basille@ufl.edu", role = c("aut")))
 Maintainers@R: person("Simona", "Picardi", email = "simona.picardi@usu.edu", role = c("aut", "cre"))
 Description: A package to locate nests and estimate avian reproductive outcome from GPS-tracking data. It includes functions to identify nest sites along bird movement trajectories based on patterns of location revisitation, dynamically explore results, estimate the outcome of identified nesting attempts, and plot and summarize outputs. 
@@ -24,8 +24,9 @@ Imports:
     purrr,
     forcats,
     rpart,
-    rpart.plot
-RoxygenNote: 7.1.1
+    rpart.plot,
+    magrittr
+RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     markdown,
