@@ -273,7 +273,7 @@ find_nests <- function(gps_data,
              .data$consec_days >= min_consec,
              .data$perc_days_vis >= min_days_att,
              .data$perc_top_vis >= min_top_att) %>%
-      dplyr::left_join(dplyr::select(.data$dat,
+      dplyr::left_join(dplyr::select(dat,
                                      .data$loc_id,
                                      .data$long,
                                      .data$lat),
