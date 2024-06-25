@@ -323,25 +323,39 @@ compare_buffers <- function(gps_data,
     if(length(buffercomp) == length(temp)) {
 
       temp <- lapply(temp, function(x) {
-        if (!is.null(x)) { # handle situation where one element is empty
-          if (nrow(x) == 0) { # handle situation where no nest was kept after filtering
-            y <- data.frame(burst = NA,
-                            loc_id = NA,
-                            long = NA,
-                            lat = NA,
-                            first_date = NA,
-                            last_date = NA,
-                            attempt_start = NA,
-                            attempt_end = NA,
-                            tot_vis = NA,
-                            days_vis = NA,
-                            consec_days = NA,
-                            perc_days_vis = NA,
-                            perc_top_vis = NA)
-            return(y)
-          } else {
-            return(x)
-          }}
+        if (is.null(x)) { # handle situation where one element is empty
+          y <- data.frame(burst = NA,
+                          loc_id = NA,
+                          long = NA,
+                          lat = NA,
+                          first_date = NA,
+                          last_date = NA,
+                          attempt_start = NA,
+                          attempt_end = NA,
+                          tot_vis = NA,
+                          days_vis = NA,
+                          consec_days = NA,
+                          perc_days_vis = NA,
+                          perc_top_vis = NA)
+          return(y)
+        } else if (nrow(x) == 0) { # handle situation where no nest was kept after filtering
+          y <- data.frame(burst = NA,
+                          loc_id = NA,
+                          long = NA,
+                          lat = NA,
+                          first_date = NA,
+                          last_date = NA,
+                          attempt_start = NA,
+                          attempt_end = NA,
+                          tot_vis = NA,
+                          days_vis = NA,
+                          consec_days = NA,
+                          perc_days_vis = NA,
+                          perc_top_vis = NA)
+          return(y)
+        } else {
+          return(x)
+        }
       })
 
       buffercomp <- purrr::map2(buffercomp, temp, rbind)
@@ -349,7 +363,11 @@ compare_buffers <- function(gps_data,
   }
 
   buffercomp <- lapply(buffercomp, FUN = function(x){
-    x <- x[complete.cases(x),]; rownames(x) <- 1:nrow(x); return(x)
+    x <- x[complete.cases(x),]
+    if(nrow(x) > 0) {
+      rownames(x) <- 1:nrow(x)
+    }
+    return(x)
   })
   names(buffercomp) <- buffers
 
@@ -374,6 +392,7 @@ compare_buffers <- function(gps_data,
   #Number of nests per individual
   nests_per_ind <- data.frame()
   for (n in 1:(length(buffercomp))) {
+    if (nrow(buffercomp[[n]] > 0)) {
     temp <- buffercomp[[n]] %>%
       dplyr::group_by(.data$burst) %>%
       dplyr::tally() %>%
@@ -382,7 +401,7 @@ compare_buffers <- function(gps_data,
       dplyr::select(.data$burst, .data$buffer_size, .data$n)
     nests_per_ind <- rbind(nests_per_ind, temp) %>%
       dplyr::arrange(.data$burst)
-  }
+  }}
 
   #If known nests are provided, also return performance metrics
   if (!is.null(known_coords)) {
@@ -411,7 +430,8 @@ compare_buffers <- function(gps_data,
   #Positive predictive value
   # Number of known nests found
   ppv_num <- unlist(lapply(buffercomp_copy, FUN = function(x) {
-    y <- x %>%
+    if (nrow(x > 0)) {
+      y <- x %>%
       dplyr::left_join(known_coords, by = "burst") %>%
       dplyr::mutate(dist = geosphere::distGeo(cbind(.data$true_long,
                                                     .data$true_lat),
@@ -420,13 +440,14 @@ compare_buffers <- function(gps_data,
       dplyr::filter(.data$dist <= sp_tol) %>%
       nrow()
     return(y)
-  }))
+  }}))
 
   # Total number of nests found
   ppv_den <- unlist(lapply(buffercomp_copy, FUN = function(x) {
-    y <- x %>%
+    if (nrow(x > 0)) {
+      y <- x %>%
       dplyr::filter(.data$burst %in% known_coords$burst) %>%
-      nrow()}))
+      nrow()}}))
   # PPV
   ppv <- data.frame(ppv = ppv_num/ppv_den*100)
   ppv <- cbind(ppv, buffer_size = rownames(ppv)) %>%
